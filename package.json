@@ -1,0 +1,133 @@
+{
+	"name": "qtvsctools",
+	"displayName": "Qt tools",
+	"description": "Qt tools support for VSCode",
+	"version": "0.1.0",
+	"publisher": "tonka3000",
+	"preview": true,
+	"license": "MIT",
+	"keywords": [
+		"qt",
+		"tools",
+		"c++",
+		"native"
+	],
+	"author": {
+		"name": "tonka3100"
+	},
+	"engines": {
+		"vscode": "^1.35.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:qttools.currentfileindesigner",
+		"onCommand:qttools.launchdesigneronly",
+		"onCommand:qttools.launchassistant",
+		"workspaceContains:**/CMakeLists.txt",
+		"workspaceContains:.vscode/cmake-kits.json"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "qttools.currentfileindesigner",
+				"title": "Edit in Qt Designer",
+				"category": "Qt"
+			},
+			{
+				"command": "qttools.launchdesigneronly",
+				"title": "Launch Qt Designer",
+				"category": "Qt"
+			},
+			{
+				"command": "qttools.launchassistant",
+				"title": "Launch Qt Assistant",
+				"category": "Qt"
+			},
+			{
+				"command": "qttools.scanqtkit",
+				"title": "Scan for Qt Kit",
+				"category": "Qt"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "qttools.currentfileindesigner",
+					"when": "resourceExtname == .ui"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "qttools.currentfileindesigner",
+					"when": "resourceExtname == .ui",
+					"group": "qttools@1"
+				}
+			],
+			"editor/title": [
+				{
+					"command": "qttools.currentfileindesigner",
+					"when": "resourceExtname == .ui",
+					"group": "qttools@1"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "qttools.currentfileindesigner",
+					"when": "resourceExtname == .ui",
+					"group": "qttools@1"
+				}
+			]
+		},
+		"configuration": [
+			{
+				"type": "object",
+				"title": "Qt",
+				"properties": {
+					"qttools.extraSearchDirectories": {
+						"type": [
+							"array"
+						],
+						"default": [],
+						"description": "Extra search directories for Qt tools. Required when the Qt tools like designer are not installed next to qmake",
+						"scope": "resource"
+					}
+				}
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^5.2.7",
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.41.0",
+		"glob": "^7.1.5",
+		"mocha": "^6.2.2",
+		"typescript": "^3.6.4",
+		"tslint": "^5.20.0",
+		"vscode-test": "^1.2.2",
+		"vscode-cpptools": "^3.0.1"
+	},
+	"dependencies": {
+		"vscode-jsonrpc": "^4.0.0"
+	},
+	"icon": "icon.png",
+	"homepage": "https://github.com/tonka3000/vscode-qt-tools",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tonka3000/vscode-qt-tools.git"
+	},
+	"bugs": {
+		"url": "https://github.com/tonka3000/vscode-qt-tools/issues",
+		"email": "tonka3100@gmail.com"
+	}
+}
