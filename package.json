@@ -16,7 +16,7 @@
 		"name": "tonka3100"
 	},
 	"engines": {
-		"vscode": "^1.35.0"
+		"vscode": "^1.41.0"
 	},
 	"categories": [
 		"Other"
