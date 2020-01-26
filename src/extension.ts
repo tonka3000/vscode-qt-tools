@@ -42,6 +42,8 @@ class ExtensionManager implements vscode.Disposable {
 			}
 			this.setActiveKit(qtRootDir);
 			this.setupCMakeCacheWatcher();
+			this.generateNativsFile();
+			this.injectNatvisFile();
 		}
 	}
 
@@ -115,6 +117,71 @@ class ExtensionManager implements vscode.Disposable {
 		});
 	}
 
+	public generateNativsFile() {
+		const natvisTempalteFilename = path.join(this._context.extensionPath, "src", "qt.natvis.xml");
+		if (fs.existsSync(natvisTempalteFilename)) {
+			const wnf = this.workspaceNatvisFilename();
+			if (wnf) {
+				const template = fs.readFileSync(natvisTempalteFilename, "utf8");
+				let qtNamepsace = "";
+				if (process.platform === "win32") {
+					qtNamepsace = "::"; // it is requried to set this on windows when there is no qt namespace set
+				}
+				const natvisdata = template.replace(/%%QT_NAMESPACE%%/g, qtNamepsace); // TODO extract qt namespace from headers
+				const basedir = path.dirname(wnf);
+				if (!fs.existsSync(basedir)) {
+					fs.mkdirSync(basedir, { recursive: true });
+				}
+				fs.writeFileSync(wnf, natvisdata, "utf8");
+			}
+		} else {
+			this.outputchannel.appendLine(`could not find natvis template file ${natvisTempalteFilename}`);
+		}
+	}
+
+	public injectNatvisFile() {
+		const workbenchConfig = vscode.workspace.getConfiguration();
+		let shouldInjectnatvisFile = workbenchConfig.get('qttools.injectNatvisFile') as boolean;
+		if (!shouldInjectnatvisFile) {
+			return;
+		}
+		const nvf = this.workspaceNatvisFilename();
+		if (fs.existsSync(nvf)) {
+			const nvf_launch = this.workspaceNatvisFilename(true); // at the moment the natvis filepath had to be resolved
+			const config = vscode.workspace.getConfiguration('launch');
+
+			let values = config.get('configurations') as Array<any>;
+			let launch_change_required = false;
+			if (values) {
+				for (let i = 0; i < values.length; i++) {
+					let singleConf = values[i];
+					if ('type' in singleConf) {
+						const conftype = singleConf.type as string;
+						if (conftype === "cppdbg" || conftype === "cppvsdbg") {
+							let setvalue = true;
+							if ('visualizerFile' in singleConf) {
+								if (singleConf.visualizerFile === nvf_launch) {
+									setvalue = false;
+								}
+							}
+							if (setvalue) {
+								singleConf.visualizerFile = nvf_launch;
+								if (!launch_change_required) {
+									launch_change_required = true;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if (launch_change_required) {
+				this.outputchannel.appendLine("inject natvis file into launch.json");
+				config.update('configurations', values, false);
+			}
+		}
+	}
+
 	dispose() {
 		if (this._cmakeCacheWatcher) {
 			this._cmakeCacheWatcher.close();
@@ -122,6 +189,34 @@ class ExtensionManager implements vscode.Disposable {
 		}
 	}
 
+	public workspaceNatvisFilename(resovled: boolean = true): string {
+		let result = "";
+		const natvis_filename = "qt.natvis.xml";
+
+		const generateNativsFileIntoWorkspaceSettings = false;
+		if (!generateNativsFileIntoWorkspaceSettings) {
+			const sp = this._context.storagePath;
+			if (sp) {
+				result = path.join(sp, "qt.natvis.xml");
+			}
+		}
+		else {
+			if (resovled) {
+				const workspaceFolder = vscode.workspace.rootPath;
+				if (workspaceFolder) {
+					const vscodeFolder = path.join(workspaceFolder, ".vscode");
+					if (fs.existsSync(vscodeFolder)) {
+						result = path.join(vscodeFolder, "qt.natvis.xml");
+
+					}
+				}
+			}
+			else {
+				result = path.join("${workspaceFolder}", natvis_filename);
+			}
+		}
+		return result;
+	}
 }
 
 /**

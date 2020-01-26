@@ -93,6 +93,12 @@
 						"default": [],
 						"description": "Extra search directories for Qt tools. Required when the Qt tools like designer are not installed next to qmake",
 						"scope": "resource"
+					},
+					"qttools.injectNatvisFile": {
+						"type": "boolean",
+						"default": true,
+						"description": "automatically inject the natvis.xml of Qt into existing launch.json entries",
+						"scope": "resource"
 					}
 				}
 			}
