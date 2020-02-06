@@ -2,7 +2,7 @@
 	"name": "qtvsctools",
 	"displayName": "Qt tools",
 	"description": "Qt tools support for VSCode",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"publisher": "tonka3000",
 	"preview": true,
 	"license": "MIT",
@@ -92,6 +92,12 @@
 						],
 						"default": [],
 						"description": "Extra search directories for Qt tools. Required when the Qt tools like designer are not installed next to qmake",
+						"scope": "resource"
+					},
+					"qttools.injectNatvisFile": {
+						"type": "boolean",
+						"default": true,
+						"description": "automatically inject the natvis.xml of Qt into existing launch.json entries",
 						"scope": "resource"
 					}
 				}
