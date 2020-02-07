@@ -118,7 +118,7 @@ class ExtensionManager implements vscode.Disposable {
 	}
 
 	public generateNativsFile() {
-		const natvisTempalteFilename = path.join(this._context.extensionPath, "src", "qt.natvis.xml");
+		const natvisTempalteFilename = path.join(this._context.extensionPath, "res", "qt.natvis.xml");
 		if (fs.existsSync(natvisTempalteFilename)) {
 			const wnf = this.workspaceNatvisFilename();
 			if (wnf) {
