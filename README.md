@@ -16,6 +16,7 @@ At the moment the extension extracts the Qt file locations from CMake only (from
   So you need to configure your project for the first time and afterwards every Qt tool is found automatically (when it is installed on your disk ;-) ).
 * [x] Debugger extensions (via natvis files) (partially implemented)<br>
   The Qt natvis file from this extension will automatically get injected into your existing `launch.json` file (per default). If you don't like that feature you can turn it of via `qttools.injectNatvisFile` setting.
+  You can also set your custom created/downloaded qt natvis file instead of the bundled one via the `qttools.visualizerFile` (f.e. you can download the one from the offical [Qt Visual Studio Tools](https://code.qt.io/cgit/qt-labs/vstools.git/tree/src/qtvstools/qt5.natvis.xml))
 * [ ] qml language support (there are already some VSCode extensions)
 * ...
 

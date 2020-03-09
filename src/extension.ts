@@ -117,8 +117,17 @@ class ExtensionManager implements vscode.Disposable {
 		});
 	}
 
+	public getNatvisTemplateFilepath(): string {
+		const workbenchConfig = vscode.workspace.getConfiguration();
+		let visualizerFile = workbenchConfig.get('qttools.visualizerFile') as string;
+		if (!visualizerFile) {
+			visualizerFile = path.join(this._context.extensionPath, "res", "qt.natvis.xml");
+		}
+		return visualizerFile;
+	}
+
 	public generateNativsFile() {
-		const natvisTempalteFilename = path.join(this._context.extensionPath, "res", "qt.natvis.xml");
+		const natvisTempalteFilename = this.getNatvisTemplateFilepath();
 		if (fs.existsSync(natvisTempalteFilename)) {
 			const wnf = this.workspaceNatvisFilename();
 			if (wnf) {
@@ -127,7 +136,9 @@ class ExtensionManager implements vscode.Disposable {
 				if (process.platform === "win32") {
 					qtNamepsace = "::"; // it is requried to set this on windows when there is no qt namespace set
 				}
-				const natvisdata = template.replace(/%%QT_NAMESPACE%%/g, qtNamepsace); // TODO extract qt namespace from headers
+				let normalizedTemplateData = template.replace(/##NAMESPACE##::/g, "%%QT_NAMESPACE%%"); // normalize qtvstools style macros to our ones
+				normalizedTemplateData = normalizedTemplateData.replace(/##NAMESPACE##/g, "%%QT_NAMESPACE%%"); // normalize qtvstools style macros to our ones
+				const natvisdata = normalizedTemplateData.replace(/%%QT_NAMESPACE%%/g, qtNamepsace); // TODO extract qt namespace from headers
 				const basedir = path.dirname(wnf);
 				if (!fs.existsSync(basedir)) {
 					fs.mkdirSync(basedir, { recursive: true });

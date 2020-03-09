@@ -99,6 +99,11 @@
 						"default": true,
 						"description": "automatically inject the natvis.xml of Qt into existing launch.json entries",
 						"scope": "resource"
+					},
+					"qttools.visualizerFile": {
+						"type": "string",
+						"default": "",
+						"description": "filepath to a natvis.xml file which will be used instead of the bundled one"
 					}
 				}
 			}
