@@ -25,6 +25,9 @@
 		"onCommand:qttools.currentfileindesigner",
 		"onCommand:qttools.launchdesigneronly",
 		"onCommand:qttools.launchassistant",
+		"onCommand:qttools.launchcreatoronly",
+		"onCommand:qttools.workspaceincreator",
+		"onCommand:qttools.currentfileincreator",
 		"workspaceContains:**/CMakeLists.txt",
 		"workspaceContains:.vscode/cmake-kits.json"
 	],
