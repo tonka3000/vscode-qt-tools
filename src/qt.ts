@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as tools from './tools';
 import { platform } from "os";
 import * as vscode from 'vscode';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import * as os from "os";
 
 function searchFileInDirectories(directories: Array<string>, filenames: Array<string>): string {
@@ -50,10 +50,12 @@ export class Qt {
     private _creatorFilename = "";
     public _extraSearchDirectories: Array<string> = [];
     public outputchannel: vscode.OutputChannel;
+    private _extensionRootFolder = "";
 
-    constructor(outputchannel: vscode.OutputChannel, qtbaseDir: string = "") {
+    constructor(outputchannel: vscode.OutputChannel, extensionRootFolder: string, qtbaseDir: string = "") {
         this._qtbaseDir = qtbaseDir;
         this.outputchannel = outputchannel;
+        this._extensionRootFolder = extensionRootFolder;
     }
 
     public get extraSearchDirectories(): Array<string> {
@@ -110,6 +112,23 @@ export class Qt {
         return searchFileInDirectories(searchdirs, filesnames);
     }
 
+    private getInstalledCreatorFilenameWindows(): string {
+        let result = "";
+        try {
+            const getCreator = path.join(this._extensionRootFolder, "src", "ps", "getcreator.ps1");
+            const creatorRootFolder = execSync(`powershell -executionpolicy bypass "${getCreator}"`).toString().trim();
+            if (fs.existsSync(creatorRootFolder)) {
+                const creatorExec = path.join(creatorRootFolder, "bin", "qtcreator.exe");
+                if (fs.existsSync(creatorExec)) {
+                    result = creatorExec;
+                }
+            }
+        } catch (error) {
+
+        }
+        return result;
+    }
+
     public get creatorFilename(): string {
         if (this._creatorFilename) {
             if (process.platform === "darwin" && this._creatorFilename.endsWith(".app")) {
@@ -125,8 +144,10 @@ export class Qt {
             if (fs.existsSync(appName)) {
                 result = appName;
             }
+        } else if (process.platform === "win32") {
+            result = this.getInstalledCreatorFilenameWindows();
         } else {
-            // TODO auto detection for windows and linux
+            // TODO auto detection for linux
         }
         return result;
     }

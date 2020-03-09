@@ -16,7 +16,7 @@ class ExtensionManager implements vscode.Disposable {
 	constructor(public readonly extensionContext: vscode.ExtensionContext) {
 		this._context = extensionContext;
 		this._channel = vscode.window.createOutputChannel("Qt");
-		this.qtManager = new qt.Qt(this._channel);
+		this.qtManager = new qt.Qt(this._channel, this._context.extensionPath);
 		this.cmakeCache = new cmake.CMakeCache();
 
 		this._context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
