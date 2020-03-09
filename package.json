@@ -102,6 +102,21 @@
 					}
 				}
 			}
+		],
+		"languages": [
+			{
+				"id": "css",
+				"extensions": [
+					".qss"
+				]
+			},
+			{
+				"id": "xml",
+				"extensions": [
+					".ui",
+					".qrc"
+				]
+			}
 		]
 	},
 	"scripts": {
