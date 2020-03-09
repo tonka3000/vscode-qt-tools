@@ -115,7 +115,7 @@ export class Qt {
     private getInstalledCreatorFilenameWindows(): string {
         let result = "";
         try {
-            const getCreator = path.join(this._extensionRootFolder, "src", "ps", "getcreator.ps1");
+            const getCreator = path.join(this._extensionRootFolder, "res", "getcreator.ps1");
             const creatorRootFolder = execSync(`powershell -executionpolicy bypass "${getCreator}"`).toString().trim();
             if (fs.existsSync(creatorRootFolder)) {
                 const creatorExec = path.join(creatorRootFolder, "bin", "qtcreator.exe");
