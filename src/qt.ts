@@ -3,7 +3,8 @@ import * as path from 'path';
 import * as tools from './tools';
 import { platform } from "os";
 import * as vscode from 'vscode';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
+import * as os from "os";
 
 function searchFileInDirectories(directories: Array<string>, filenames: Array<string>): string {
     for (let i = 0; i < directories.length; i++) {
@@ -46,12 +47,15 @@ export function findQtRootDirViaCmakeDir(qt5_dir: string): string {
 
 export class Qt {
     private _qtbaseDir: string = "";
+    private _creatorFilename = "";
     public _extraSearchDirectories: Array<string> = [];
     public outputchannel: vscode.OutputChannel;
+    private _extensionRootFolder = "";
 
-    constructor(outputchannel: vscode.OutputChannel, qtbaseDir: string = "") {
+    constructor(outputchannel: vscode.OutputChannel, extensionRootFolder: string, qtbaseDir: string = "") {
         this._qtbaseDir = qtbaseDir;
         this.outputchannel = outputchannel;
+        this._extensionRootFolder = extensionRootFolder;
     }
 
     public get extraSearchDirectories(): Array<string> {
@@ -108,6 +112,50 @@ export class Qt {
         return searchFileInDirectories(searchdirs, filesnames);
     }
 
+    private getInstalledCreatorFilenameWindows(): string {
+        let result = "";
+        try {
+            const getCreator = path.join(this._extensionRootFolder, "src", "ps", "getcreator.ps1");
+            const creatorRootFolder = execSync(`powershell -executionpolicy bypass "${getCreator}"`).toString().trim();
+            if (fs.existsSync(creatorRootFolder)) {
+                const creatorExec = path.join(creatorRootFolder, "bin", "qtcreator.exe");
+                if (fs.existsSync(creatorExec)) {
+                    result = creatorExec;
+                }
+            }
+        } catch (error) {
+
+        }
+        return result;
+    }
+
+    public get creatorFilename(): string {
+        if (this._creatorFilename) {
+            if (process.platform === "darwin" && this._creatorFilename.endsWith(".app")) {
+                return path.join(this._creatorFilename, "Contents", "MacOS", "Qt Creator");
+            } else {
+                return this._creatorFilename;
+            }
+        }
+        let result = "";
+        let searchdirs = [];
+        if (process.platform === "darwin") {
+            const appName = path.join(os.homedir(), "Qt", "Qt Creator.app", "Contents", "MacOS", "Qt Creator");
+            if (fs.existsSync(appName)) {
+                result = appName;
+            }
+        } else if (process.platform === "win32") {
+            result = this.getInstalledCreatorFilenameWindows();
+        } else {
+            // TODO auto detection for linux
+        }
+        return result;
+    }
+
+    public set creatorFilename(value: string) {
+        this._creatorFilename = value;
+    }
+
     public launchAssistant() {
         this.outputchannel.appendLine(`launch assistant process`);
         const assistantFilename = this.assistantFilename;
@@ -117,6 +165,28 @@ export class Qt {
         const assistant = spawn(assistantFilename, []);
         assistant.on('close', (code) => {
             this.outputchannel.appendLine(`qt assistant child process exited with code ${code}`);
+        });
+    }
+
+    public launchCreator(filename: string = "") {
+        this.outputchannel.appendLine(`launch creator process`);
+        const creatorFilename = this.creatorFilename;
+        if (!fs.existsSync(creatorFilename)) {
+            throw new Error(`qt creator executable does not exists '${creatorFilename}'`);
+        }
+        let args: string[] = [];
+        if (filename.length > 0) {
+            if (!fs.lstatSync(filename).isDirectory()) { // directories will be not checked
+                const extension = path.extname(filename);
+                if (extension !== ".qrc" && extension !== ".ui") {
+                    throw new Error(`file extension '${extension}' is not support by Qt Creator`);
+                }
+            }
+            args = [filename];
+        }
+        const assistant = spawn(creatorFilename, args);
+        assistant.on('close', (code) => {
+            this.outputchannel.appendLine(`qt creator child process exited with code ${code}`);
         });
     }
 

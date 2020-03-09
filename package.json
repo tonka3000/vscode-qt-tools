@@ -25,6 +25,9 @@
 		"onCommand:qttools.currentfileindesigner",
 		"onCommand:qttools.launchdesigneronly",
 		"onCommand:qttools.launchassistant",
+		"onCommand:qttools.launchcreatoronly",
+		"onCommand:qttools.workspaceincreator",
+		"onCommand:qttools.currentfileincreator",
 		"workspaceContains:**/CMakeLists.txt",
 		"workspaceContains:.vscode/cmake-kits.json"
 	],
@@ -50,6 +53,21 @@
 				"command": "qttools.scanqtkit",
 				"title": "Scan for Qt Kit",
 				"category": "Qt"
+			},
+			{
+				"command": "qttools.launchcreatoronly",
+				"title": "Launch Qt Creator",
+				"category": "Qt"
+			},
+			{
+				"command": "qttools.workspaceincreator",
+				"title": "Launch workspace in Qt Creator",
+				"category": "Qt"
+			},
+			{
+				"command": "qttools.currentfileincreator",
+				"title": "Edit in Qt Creator",
+				"category": "Qt"
 			}
 		],
 		"menus": {
@@ -57,12 +75,21 @@
 				{
 					"command": "qttools.currentfileindesigner",
 					"when": "resourceExtname == .ui"
+				},
+				{
+					"command": "qttools.currentfileincreator",
+					"when": "resourceExtname == .qrc || resourceExtname == .ui"
 				}
 			],
 			"explorer/context": [
 				{
 					"command": "qttools.currentfileindesigner",
 					"when": "resourceExtname == .ui",
+					"group": "qttools@1"
+				},
+				{
+					"command": "qttools.currentfileincreator",
+					"when": "resourceExtname == .qrc || resourceExtname == .ui",
 					"group": "qttools@1"
 				}
 			],
@@ -71,12 +98,22 @@
 					"command": "qttools.currentfileindesigner",
 					"when": "resourceExtname == .ui",
 					"group": "qttools@1"
+				},
+				{
+					"command": "qttools.currentfileincreator",
+					"when": "resourceExtname == .qrc || resourceExtname == .ui",
+					"group": "qttools@1"
 				}
 			],
 			"editor/context": [
 				{
 					"command": "qttools.currentfileindesigner",
 					"when": "resourceExtname == .ui",
+					"group": "qttools@1"
+				},
+				{
+					"command": "qttools.currentfileincreator",
+					"when": "resourceExtname == .qrc || resourceExtname == .ui",
 					"group": "qttools@1"
 				}
 			]
@@ -104,6 +141,11 @@
 						"type": "string",
 						"default": "",
 						"description": "filepath to a natvis.xml file which will be used instead of the bundled one"
+					},
+					"qttools.creator": {
+						"type": "string",
+						"default": "",
+						"description": "absolute filepath to the Qt Creator executable"
 					}
 				}
 			}

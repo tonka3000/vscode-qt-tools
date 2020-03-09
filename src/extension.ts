@@ -16,7 +16,7 @@ class ExtensionManager implements vscode.Disposable {
 	constructor(public readonly extensionContext: vscode.ExtensionContext) {
 		this._context = extensionContext;
 		this._channel = vscode.window.createOutputChannel("Qt");
-		this.qtManager = new qt.Qt(this._channel);
+		this.qtManager = new qt.Qt(this._channel, this._context.extensionPath);
 		this.cmakeCache = new cmake.CMakeCache();
 
 		this._context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
@@ -45,6 +45,19 @@ class ExtensionManager implements vscode.Disposable {
 			this.generateNativsFile();
 			this.injectNatvisFile();
 		}
+		if (this.qtManager) {
+			this.qtManager.creatorFilename = this.getCreatorFilenameSetting();
+		}
+	}
+
+	public getCreatorFilenameSetting(): string {
+		let result = "";
+		const workbenchConfig = vscode.workspace.getConfiguration();
+		let creatorFilename = workbenchConfig.get('qttools.creator') as string;
+		if (creatorFilename) {
+			result = creatorFilename;
+		}
+		return result;
 	}
 
 	public setActiveKit(qtRootDir: string) {
@@ -287,6 +300,53 @@ export async function activate(context: vscode.ExtensionContext) {
 				const ex: Error = error;
 				_EXT_MANAGER.outputchannel.appendLine(`error during launching Qt Designer: ${ex.message}`);
 				vscode.window.showErrorMessage(`error launching Qt Designer: ${ex.message}`);
+			}
+		}
+	});
+
+	_EXT_MANAGER.registerCommand('qttools.launchcreatoronly', () => {
+		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
+			_EXT_MANAGER.updateState();
+			try {
+				_EXT_MANAGER.qtManager.launchCreator();
+			} catch (error) {
+				const ex: Error = error;
+				_EXT_MANAGER.outputchannel.appendLine(`error during launching Qt Creator: ${ex.message}`);
+				vscode.window.showErrorMessage(`error launching Qt Creator: ${ex.message}`);
+			}
+		}
+	});
+
+	_EXT_MANAGER.registerCommand('qttools.workspaceincreator', () => {
+		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
+			_EXT_MANAGER.updateState();
+			try {
+				const workspaceFolder = vscode.workspace.rootPath;
+				_EXT_MANAGER.qtManager.launchCreator(workspaceFolder);
+			} catch (error) {
+				const ex: Error = error;
+				_EXT_MANAGER.outputchannel.appendLine(`error during launching Qt Creator: ${ex.message}`);
+				vscode.window.showErrorMessage(`error launching Qt Creator: ${ex.message}`);
+			}
+		}
+	});
+
+	_EXT_MANAGER.registerCommand('qttools.currentfileincreator', () => {
+		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
+			_EXT_MANAGER.updateState();
+			const current_file = _EXT_MANAGER.getActiveDocumentFilename();
+			if (current_file) {
+				try {
+					_EXT_MANAGER.qtManager.launchCreator(current_file);
+				} catch (error) {
+					const ex: Error = error;
+					_EXT_MANAGER.outputchannel.appendLine(`error during launching Qt Creator: ${ex.message}`);
+					vscode.window.showErrorMessage(`error launching Qt Creator: ${ex.message}`);
+				}
+			}
+			else {
+				_EXT_MANAGER.outputchannel.appendLine("no current file select in workspace");
+				vscode.window.showErrorMessage("no current file selected");
 			}
 		}
 	});
