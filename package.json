@@ -68,6 +68,11 @@
 				"command": "qttools.currentfileincreator",
 				"title": "Edit in Qt Creator",
 				"category": "Qt"
+			},
+			{
+				"command": "qttools.removenatviscache",
+				"title": "Delete natvis download cache",
+				"category": "Qt"
 			}
 		],
 		"menus": {
@@ -178,6 +183,9 @@
 		"@types/mocha": "^5.2.7",
 		"@types/node": "^12.11.7",
 		"@types/vscode": "^1.41.0",
+		"@types/download": "^6.2.4",
+		"@types/sha.js": "^2.4.0",
+		"@types/rimraf": "^2.0.3",
 		"glob": "^7.1.5",
 		"mocha": "^6.2.2",
 		"typescript": "^3.6.4",
@@ -186,6 +194,9 @@
 		"vscode-cpptools": "^3.0.1"
 	},
 	"dependencies": {
+		"download": "^7.1.0",
+		"rimraf": "^3.0.2",
+		"sha.js": "^2.4.11",
 		"vscode-jsonrpc": "^4.0.0"
 	},
 	"icon": "icon.png",
