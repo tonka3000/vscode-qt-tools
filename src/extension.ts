@@ -4,6 +4,7 @@ import * as qt from './qt';
 import * as cmake from './cmake';
 import { StatusBar } from './status';
 import * as fs from 'fs';
+import { NatvisDownloader } from './downloader';
 
 class ExtensionManager implements vscode.Disposable {
 	public qtManager: qt.Qt | null = null;
@@ -12,12 +13,18 @@ class ExtensionManager implements vscode.Disposable {
 	private _channel: vscode.OutputChannel;
 	private readonly _statusbar = new StatusBar();
 	private _cmakeCacheWatcher: fs.FSWatcher | null = null;
+	public natvisDownloader: NatvisDownloader | null = null;
 
 	constructor(public readonly extensionContext: vscode.ExtensionContext) {
 		this._context = extensionContext;
 		this._channel = vscode.window.createOutputChannel("Qt");
 		this.qtManager = new qt.Qt(this._channel, this._context.extensionPath);
 		this.cmakeCache = new cmake.CMakeCache();
+		this.natvisDownloader = new NatvisDownloader(this._context);
+
+		this.natvisDownloader.downloadStateCallback = (text: string) => {
+			this._channel.appendLine(text);
+		};
 
 		this._context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
 			this.updateState();
@@ -42,8 +49,10 @@ class ExtensionManager implements vscode.Disposable {
 			}
 			this.setActiveKit(qtRootDir);
 			this.setupCMakeCacheWatcher();
-			this.generateNativsFile();
-			this.injectNatvisFile();
+			if (qtRootDir) {
+				await this.generateNativsFile();
+				this.injectNatvisFile();
+			}
 		}
 		if (this.qtManager) {
 			this.qtManager.creatorFilename = this.getCreatorFilenameSetting();
@@ -130,25 +139,31 @@ class ExtensionManager implements vscode.Disposable {
 		});
 	}
 
-	public getNatvisTemplateFilepath(): string {
+	public async getNatvisTemplateFilepath(): Promise<string> {
 		const workbenchConfig = vscode.workspace.getConfiguration();
 		let visualizerFile = workbenchConfig.get('qttools.visualizerFile') as string;
 		if (!visualizerFile) {
 			visualizerFile = path.join(this._context.extensionPath, "res", "qt.natvis.xml");
+		} else {
+			if (visualizerFile.startsWith("http") && this.natvisDownloader) {
+				try {
+					visualizerFile = await this.natvisDownloader.download(visualizerFile);
+				} catch (error) {
+					this._channel.appendLine(`could not download ${visualizerFile}: ${error}`);
+					visualizerFile = "";
+				}
+			}
 		}
 		return visualizerFile;
 	}
 
-	public generateNativsFile() {
-		const natvisTempalteFilename = this.getNatvisTemplateFilepath();
+	public async generateNativsFile() {
+		const natvisTempalteFilename = await this.getNatvisTemplateFilepath();
 		if (fs.existsSync(natvisTempalteFilename)) {
 			const wnf = this.workspaceNatvisFilename();
 			if (wnf) {
 				const template = fs.readFileSync(natvisTempalteFilename, "utf8");
 				let qtNamepsace = "";
-				if (process.platform === "win32") {
-					qtNamepsace = "::"; // it is requried to set this on windows when there is no qt namespace set
-				}
 				let normalizedTemplateData = template.replace(/##NAMESPACE##::/g, "%%QT_NAMESPACE%%"); // normalize qtvstools style macros to our ones
 				normalizedTemplateData = normalizedTemplateData.replace(/##NAMESPACE##/g, "%%QT_NAMESPACE%%"); // normalize qtvstools style macros to our ones
 				const natvisdata = normalizedTemplateData.replace(/%%QT_NAMESPACE%%/g, qtNamepsace); // TODO extract qt namespace from headers
@@ -211,6 +226,7 @@ class ExtensionManager implements vscode.Disposable {
 			this._cmakeCacheWatcher.close();
 			this._cmakeCacheWatcher = null;
 		}
+		this.natvisDownloader = null;
 	}
 
 	public workspaceNatvisFilename(resovled: boolean = true): string {
@@ -354,6 +370,16 @@ export async function activate(context: vscode.ExtensionContext) {
 	_EXT_MANAGER.registerCommand('qttools.scanqtkit', () => {
 		if (_EXT_MANAGER) {
 			_EXT_MANAGER.updateState();
+		}
+	});
+
+	_EXT_MANAGER.registerCommand('qttools.removenatviscache', () => {
+		if (_EXT_MANAGER && _EXT_MANAGER.natvisDownloader) {
+			try {
+				_EXT_MANAGER.natvisDownloader.clearDownloadCache();
+			} catch (error) {
+				_EXT_MANAGER.outputchannel.appendLine(`error: ${error}`);
+			}
 		}
 	});
 
