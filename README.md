@@ -12,6 +12,7 @@ At the moment the extension extracts the Qt file locations from CMake only (from
 * [x] Launch Qt Designer
 * [x] Edit `.ui` file in Qt Designer
 * [x] Launch Qt Assistant
+* [x] Launch Visual Studio (Windows only) 
 * [x] Launch Qt Creator<br>
   `.ui` and `.qrc` files can be opened in Qt Creator. You can also open the whole workspace in Qt Creator too.<br>
   This extension try to detect the Qt Creator installation automatically (on Windows and MacOS). You can set the executable path via `qttools.creator` settings if the extension can't find Qt Creator (for whatever reason)

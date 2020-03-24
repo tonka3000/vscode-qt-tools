@@ -5,6 +5,7 @@ import * as cmake from './cmake';
 import { StatusBar } from './status';
 import * as fs from 'fs';
 import { NatvisDownloader } from './downloader';
+import * as open from 'open';
 
 class ExtensionManager implements vscode.Disposable {
 	public qtManager: qt.Qt | null = null;
@@ -379,6 +380,29 @@ export async function activate(context: vscode.ExtensionContext) {
 				_EXT_MANAGER.natvisDownloader.clearDownloadCache();
 			} catch (error) {
 				_EXT_MANAGER.outputchannel.appendLine(`error: ${error}`);
+				vscode.window.showErrorMessage("error clearing natvis cache");
+			}
+		}
+	});
+
+	_EXT_MANAGER.registerCommand('qttools.launchvisualstudio', async () => {
+		if (_EXT_MANAGER && _EXT_MANAGER.cmakeCache) {
+			try {
+				await _EXT_MANAGER.updateState();
+				const cmake_project_name = _EXT_MANAGER.cmakeCache.getKeyOrDefault("CMAKE_PROJECT_NAME", "");
+				if (cmake_project_name) {
+					const visualstudio_sln = path.join(_EXT_MANAGER.getCMakeBuildDirectory(), `${cmake_project_name}.sln`);
+					if (fs.existsSync(visualstudio_sln)) {
+						await open(visualstudio_sln);
+					} else {
+						throw new Error(`Visual Studio solution does not exist '${visualstudio_sln}'`);
+					}
+				} else {
+					throw new Error("could not get cmake project name");
+				}
+			} catch (error) {
+				_EXT_MANAGER.outputchannel.appendLine(`error: ${error}`);
+				vscode.window.showErrorMessage(`error: ${error}`);
 			}
 		}
 	});
