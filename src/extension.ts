@@ -275,9 +275,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	_EXT_MANAGER = new ExtensionManager(context);
 	_EXT_MANAGER.updateState();
 
-	_EXT_MANAGER.registerCommand('qttools.launchdesigneronly', () => {
+	_EXT_MANAGER.registerCommand('qttools.launchdesigneronly', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 			try {
 				_EXT_MANAGER.qtManager.launchDesigner();
 			} catch (error) {
@@ -288,9 +288,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.currentfileindesigner', () => {
+	_EXT_MANAGER.registerCommand('qttools.currentfileindesigner', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 			const current_file = _EXT_MANAGER.getActiveDocumentFilename();
 			if (current_file) {
 				try {
@@ -308,9 +308,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.launchassistant', () => {
+	_EXT_MANAGER.registerCommand('qttools.launchassistant', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 			try {
 				_EXT_MANAGER.qtManager.launchAssistant();
 			} catch (error) {
@@ -321,9 +321,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.launchcreatoronly', () => {
+	_EXT_MANAGER.registerCommand('qttools.launchcreatoronly', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 			try {
 				_EXT_MANAGER.qtManager.launchCreator();
 			} catch (error) {
@@ -334,9 +334,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.workspaceincreator', () => {
+	_EXT_MANAGER.registerCommand('qttools.workspaceincreator', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 			try {
 				const workspaceFolder = vscode.workspace.rootPath;
 				_EXT_MANAGER.qtManager.launchCreator(workspaceFolder);
@@ -348,9 +348,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.currentfileincreator', () => {
+	_EXT_MANAGER.registerCommand('qttools.currentfileincreator', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 			const current_file = _EXT_MANAGER.getActiveDocumentFilename();
 			if (current_file) {
 				try {
@@ -368,9 +368,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.scanqtkit', () => {
+	_EXT_MANAGER.registerCommand('qttools.scanqtkit', async () => {
 		if (_EXT_MANAGER) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 		}
 	});
 
