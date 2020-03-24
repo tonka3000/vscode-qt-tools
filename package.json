@@ -73,6 +73,11 @@
 				"command": "qttools.removenatviscache",
 				"title": "Delete natvis download cache",
 				"category": "Qt"
+			},
+			{
+				"command": "qttools.launchvisualstudio",
+				"title": "Launch in Visual Studio",
+				"category": "Qt"
 			}
 		],
 		"menus": {
@@ -84,6 +89,10 @@
 				{
 					"command": "qttools.currentfileincreator",
 					"when": "resourceExtname == .qrc || resourceExtname == .ui"
+				},
+				{
+					"command": "qttools.launchvisualstudio",
+					"when": "isWindows"
 				}
 			],
 			"explorer/context": [
@@ -186,6 +195,7 @@
 		"@types/download": "^6.2.4",
 		"@types/sha.js": "^2.4.0",
 		"@types/rimraf": "^2.0.3",
+		"@types/open": "^6.2.1",
 		"glob": "^7.1.5",
 		"mocha": "^6.2.2",
 		"typescript": "^3.6.4",
@@ -195,6 +205,7 @@
 	},
 	"dependencies": {
 		"download": "^7.1.0",
+		"open": "^7.0.3",
 		"rimraf": "^3.0.2",
 		"sha.js": "^2.4.11",
 		"vscode-jsonrpc": "^4.0.0"
