@@ -1,14 +1,20 @@
 # Change Log
 
+## 0.4.0
+
+- Add Visual Studio support on windows
+- Add url support for visualizerFile
+- Fix flaky behaviour of some commands
+
 ## 0.3.0
 
-- add Qt Creator support
-- add support for custom natvis file
-- add syntax highlighting for `.ui`, `.qrc` and `.qss` thanks to @Marr11317
+- Add Qt Creator support
+- Add support for custom natvis file
+- Add syntax highlighting for `.ui`, `.qrc` and `.qss` thanks to @Marr11317
 
 ## 0.2.1
 
-- move natvis file to `res` folder
+- Move natvis file to `res` folder
 
 ## 0.2
 

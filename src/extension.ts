@@ -4,6 +4,8 @@ import * as qt from './qt';
 import * as cmake from './cmake';
 import { StatusBar } from './status';
 import * as fs from 'fs';
+import { NatvisDownloader } from './downloader';
+import * as open from 'open';
 
 class ExtensionManager implements vscode.Disposable {
 	public qtManager: qt.Qt | null = null;
@@ -12,12 +14,18 @@ class ExtensionManager implements vscode.Disposable {
 	private _channel: vscode.OutputChannel;
 	private readonly _statusbar = new StatusBar();
 	private _cmakeCacheWatcher: fs.FSWatcher | null = null;
+	public natvisDownloader: NatvisDownloader | null = null;
 
 	constructor(public readonly extensionContext: vscode.ExtensionContext) {
 		this._context = extensionContext;
 		this._channel = vscode.window.createOutputChannel("Qt");
 		this.qtManager = new qt.Qt(this._channel, this._context.extensionPath);
 		this.cmakeCache = new cmake.CMakeCache();
+		this.natvisDownloader = new NatvisDownloader(this._context);
+
+		this.natvisDownloader.downloadStateCallback = (text: string) => {
+			this._channel.appendLine(text);
+		};
 
 		this._context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
 			this.updateState();
@@ -42,8 +50,10 @@ class ExtensionManager implements vscode.Disposable {
 			}
 			this.setActiveKit(qtRootDir);
 			this.setupCMakeCacheWatcher();
-			this.generateNativsFile();
-			this.injectNatvisFile();
+			if (qtRootDir) {
+				await this.generateNativsFile();
+				this.injectNatvisFile();
+			}
 		}
 		if (this.qtManager) {
 			this.qtManager.creatorFilename = this.getCreatorFilenameSetting();
@@ -130,25 +140,31 @@ class ExtensionManager implements vscode.Disposable {
 		});
 	}
 
-	public getNatvisTemplateFilepath(): string {
+	public async getNatvisTemplateFilepath(): Promise<string> {
 		const workbenchConfig = vscode.workspace.getConfiguration();
 		let visualizerFile = workbenchConfig.get('qttools.visualizerFile') as string;
 		if (!visualizerFile) {
 			visualizerFile = path.join(this._context.extensionPath, "res", "qt.natvis.xml");
+		} else {
+			if (visualizerFile.startsWith("http") && this.natvisDownloader) {
+				try {
+					visualizerFile = await this.natvisDownloader.download(visualizerFile);
+				} catch (error) {
+					this._channel.appendLine(`could not download ${visualizerFile}: ${error}`);
+					visualizerFile = "";
+				}
+			}
 		}
 		return visualizerFile;
 	}
 
-	public generateNativsFile() {
-		const natvisTempalteFilename = this.getNatvisTemplateFilepath();
+	public async generateNativsFile() {
+		const natvisTempalteFilename = await this.getNatvisTemplateFilepath();
 		if (fs.existsSync(natvisTempalteFilename)) {
 			const wnf = this.workspaceNatvisFilename();
 			if (wnf) {
 				const template = fs.readFileSync(natvisTempalteFilename, "utf8");
 				let qtNamepsace = "";
-				if (process.platform === "win32") {
-					qtNamepsace = "::"; // it is requried to set this on windows when there is no qt namespace set
-				}
 				let normalizedTemplateData = template.replace(/##NAMESPACE##::/g, "%%QT_NAMESPACE%%"); // normalize qtvstools style macros to our ones
 				normalizedTemplateData = normalizedTemplateData.replace(/##NAMESPACE##/g, "%%QT_NAMESPACE%%"); // normalize qtvstools style macros to our ones
 				const natvisdata = normalizedTemplateData.replace(/%%QT_NAMESPACE%%/g, qtNamepsace); // TODO extract qt namespace from headers
@@ -211,6 +227,7 @@ class ExtensionManager implements vscode.Disposable {
 			this._cmakeCacheWatcher.close();
 			this._cmakeCacheWatcher = null;
 		}
+		this.natvisDownloader = null;
 	}
 
 	public workspaceNatvisFilename(resovled: boolean = true): string {
@@ -258,9 +275,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	_EXT_MANAGER = new ExtensionManager(context);
 	_EXT_MANAGER.updateState();
 
-	_EXT_MANAGER.registerCommand('qttools.launchdesigneronly', () => {
+	_EXT_MANAGER.registerCommand('qttools.launchdesigneronly', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 			try {
 				_EXT_MANAGER.qtManager.launchDesigner();
 			} catch (error) {
@@ -271,9 +288,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.currentfileindesigner', () => {
+	_EXT_MANAGER.registerCommand('qttools.currentfileindesigner', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 			const current_file = _EXT_MANAGER.getActiveDocumentFilename();
 			if (current_file) {
 				try {
@@ -291,9 +308,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.launchassistant', () => {
+	_EXT_MANAGER.registerCommand('qttools.launchassistant', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 			try {
 				_EXT_MANAGER.qtManager.launchAssistant();
 			} catch (error) {
@@ -304,9 +321,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.launchcreatoronly', () => {
+	_EXT_MANAGER.registerCommand('qttools.launchcreatoronly', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 			try {
 				_EXT_MANAGER.qtManager.launchCreator();
 			} catch (error) {
@@ -317,9 +334,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.workspaceincreator', () => {
+	_EXT_MANAGER.registerCommand('qttools.workspaceincreator', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 			try {
 				const workspaceFolder = vscode.workspace.rootPath;
 				_EXT_MANAGER.qtManager.launchCreator(workspaceFolder);
@@ -331,9 +348,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.currentfileincreator', () => {
+	_EXT_MANAGER.registerCommand('qttools.currentfileincreator', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
 			const current_file = _EXT_MANAGER.getActiveDocumentFilename();
 			if (current_file) {
 				try {
@@ -351,9 +368,42 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.scanqtkit', () => {
+	_EXT_MANAGER.registerCommand('qttools.scanqtkit', async () => {
 		if (_EXT_MANAGER) {
-			_EXT_MANAGER.updateState();
+			await _EXT_MANAGER.updateState();
+		}
+	});
+
+	_EXT_MANAGER.registerCommand('qttools.removenatviscache', () => {
+		if (_EXT_MANAGER && _EXT_MANAGER.natvisDownloader) {
+			try {
+				_EXT_MANAGER.natvisDownloader.clearDownloadCache();
+			} catch (error) {
+				_EXT_MANAGER.outputchannel.appendLine(`error: ${error}`);
+				vscode.window.showErrorMessage("error clearing natvis cache");
+			}
+		}
+	});
+
+	_EXT_MANAGER.registerCommand('qttools.launchvisualstudio', async () => {
+		if (_EXT_MANAGER && _EXT_MANAGER.cmakeCache) {
+			try {
+				await _EXT_MANAGER.updateState();
+				const cmake_project_name = _EXT_MANAGER.cmakeCache.getKeyOrDefault("CMAKE_PROJECT_NAME", "");
+				if (cmake_project_name) {
+					const visualstudio_sln = path.join(_EXT_MANAGER.getCMakeBuildDirectory(), `${cmake_project_name}.sln`);
+					if (fs.existsSync(visualstudio_sln)) {
+						await open(visualstudio_sln);
+					} else {
+						throw new Error(`Visual Studio solution does not exist '${visualstudio_sln}'`);
+					}
+				} else {
+					throw new Error("could not get cmake project name");
+				}
+			} catch (error) {
+				_EXT_MANAGER.outputchannel.appendLine(`error: ${error}`);
+				vscode.window.showErrorMessage(`error: ${error}`);
+			}
 		}
 	});
 

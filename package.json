@@ -2,7 +2,7 @@
 	"name": "qtvsctools",
 	"displayName": "Qt tools",
 	"description": "Qt tools support for VSCode",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"publisher": "tonka3000",
 	"preview": true,
 	"license": "MIT",
@@ -68,6 +68,16 @@
 				"command": "qttools.currentfileincreator",
 				"title": "Edit in Qt Creator",
 				"category": "Qt"
+			},
+			{
+				"command": "qttools.removenatviscache",
+				"title": "Delete natvis download cache",
+				"category": "Qt"
+			},
+			{
+				"command": "qttools.launchvisualstudio",
+				"title": "Launch in Visual Studio",
+				"category": "Qt"
 			}
 		],
 		"menus": {
@@ -79,6 +89,10 @@
 				{
 					"command": "qttools.currentfileincreator",
 					"when": "resourceExtname == .qrc || resourceExtname == .ui"
+				},
+				{
+					"command": "qttools.launchvisualstudio",
+					"when": "isWindows"
 				}
 			],
 			"explorer/context": [
@@ -140,7 +154,7 @@
 					"qttools.visualizerFile": {
 						"type": "string",
 						"default": "",
-						"description": "filepath to a natvis.xml file which will be used instead of the bundled one"
+						"description": "filepath or url to a natvis.xml file which will be used instead of the bundled one. You can use f.e. `https://code.qt.io/cgit/qt-labs/vstools.git/plain/src/qtvstools/qt5.natvis.xml` when you want to use the file from Qt Visual Studio tools"
 					},
 					"qttools.creator": {
 						"type": "string",
@@ -178,6 +192,10 @@
 		"@types/mocha": "^5.2.7",
 		"@types/node": "^12.11.7",
 		"@types/vscode": "^1.41.0",
+		"@types/download": "^6.2.4",
+		"@types/sha.js": "^2.4.0",
+		"@types/rimraf": "^2.0.3",
+		"@types/open": "^6.2.1",
 		"glob": "^7.1.5",
 		"mocha": "^6.2.2",
 		"typescript": "^3.6.4",
@@ -186,6 +204,10 @@
 		"vscode-cpptools": "^3.0.1"
 	},
 	"dependencies": {
+		"download": "^7.1.0",
+		"open": "^7.0.3",
+		"rimraf": "^3.0.2",
+		"sha.js": "^2.4.11",
 		"vscode-jsonrpc": "^4.0.0"
 	},
 	"icon": "icon.png",
