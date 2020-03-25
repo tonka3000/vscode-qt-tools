@@ -154,7 +154,7 @@
 					"qttools.visualizerFile": {
 						"type": "string",
 						"default": "",
-						"description": "filepath to a natvis.xml file which will be used instead of the bundled one"
+						"description": "filepath or url to a natvis.xml file which will be used instead of the bundled one. You can use f.e. `https://code.qt.io/cgit/qt-labs/vstools.git/plain/src/qtvstools/qt5.natvis.xml` when you want to use the file from Qt Visual Studio tools"
 					},
 					"qttools.creator": {
 						"type": "string",
