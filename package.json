@@ -2,7 +2,7 @@
 	"name": "qtvsctools",
 	"displayName": "Qt tools",
 	"description": "Qt tools support for VSCode",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"publisher": "tonka3000",
 	"preview": true,
 	"license": "MIT",
@@ -188,24 +188,24 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/glob": "^7.1.1",
+		"@types/glob": "^7.1.3",
 		"@types/mocha": "^5.2.7",
-		"@types/node": "^12.11.7",
-		"@types/vscode": "^1.41.0",
+		"@types/node": "^12.12.50",
+		"@types/vscode": "^1.47.0",
 		"@types/download": "^6.2.4",
 		"@types/sha.js": "^2.4.0",
-		"@types/rimraf": "^2.0.3",
+		"@types/rimraf": "^2.0.4",
 		"@types/open": "^6.2.1",
 		"glob": "^7.1.5",
-		"mocha": "^6.2.2",
-		"typescript": "^3.6.4",
+		"mocha": "^6.2.3",
+		"typescript": "^3.9.7",
 		"tslint": "^5.20.0",
-		"vscode-test": "^1.2.2",
-		"vscode-cpptools": "^3.0.1"
+		"vscode-test": "^1.4.0",
+		"vscode-cpptools": "^3.1.0"
 	},
 	"dependencies": {
 		"download": "^7.1.0",
-		"open": "^7.0.3",
+		"open": "^7.0.4",
 		"rimraf": "^3.0.2",
 		"sha.js": "^2.4.11",
 		"vscode-jsonrpc": "^4.0.0"
