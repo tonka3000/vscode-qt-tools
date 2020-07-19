@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.4.1
+- upgrade dependencies
+
 ## 0.4.0
 
 - Add Visual Studio support on windows
