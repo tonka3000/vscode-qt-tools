@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.5
+- add support for ${buildKit} and ${buildType} in `cmake.buildDirectory`
+
 ## 0.4.1
 - upgrade dependencies
 
