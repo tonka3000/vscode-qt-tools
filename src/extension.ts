@@ -37,7 +37,7 @@ class ExtensionManager implements vscode.Disposable {
 	public async updateState() {
 		this._channel.appendLine("update state of ExtensionManager");
 		if (this.cmakeCache) {
-			this.cmakeCache.filename = this.getCmakeCacheFilename();
+			this.cmakeCache.filename = await this.getCmakeCacheFilename();
 			await this.cmakeCache.readCache();
 			const Qt5_DIR = this.cmakeCache.getKeyOrDefault("Qt5_DIR", this.cmakeCache.getKeyOrDefault("Qt5Core_DIR", ""));
 			let qtRootDir = "";
@@ -98,23 +98,86 @@ class ExtensionManager implements vscode.Disposable {
 		return result;
 	}
 
-	public getCMakeBuildDirectory(): string {
+	public getAllSubstitutionVariables(text: string): string[] {
+		let result = [];
+		const regex = /\${(.+?)}/;
+		let temp_text = text;
+		while (true) {
+			let match = regex.exec(temp_text);
+			if (match) {
+				result.push(match[1]);
+				temp_text = temp_text.replace(match[0], "");
+			} else {
+				break;
+			}
+		}
+		return result;
+	}
+
+	public async resolveSubstitutionVariables(text: string): Promise<string> {
+		let result = text;
+		const replace = (key: string, value: string) => {
+			if (value !== "") {
+				const toreplace = "${" + key + "}";
+				result = result.replace(toreplace, value);
+			}
+		};
+		const variables = this.getAllSubstitutionVariables(text);
+		for (const v of variables) {
+			switch (v) {
+				case "workspaceFolder": {
+					const workspaceFolder = vscode.workspace.rootPath || "";
+					replace(v, workspaceFolder);
+				} break;
+				case "buildKit": {
+					const buildKit = await this.getActiveCMakeBuildKit();
+					replace(v, buildKit);
+				} break;
+				case "buildType": {
+					const buildType = await this.getActiveCMakeBuildType();
+					replace(v, buildType);
+				} break;
+			}
+		}
+		return result;
+	}
+
+	public async getCMakeBuildDirectory(): Promise<string> {
 		const workbenchConfig = vscode.workspace.getConfiguration();
 		let cmakeBuildDir = String(workbenchConfig.get('cmake.buildDirectory'));
-		const workspaceFolder = vscode.workspace.rootPath;
-		if (workspaceFolder) {
-			cmakeBuildDir = cmakeBuildDir.replace("${workspaceFolder}", workspaceFolder);
-		}
+		cmakeBuildDir = await this.resolveSubstitutionVariables(cmakeBuildDir);
 		return cmakeBuildDir;
 	}
 
-	public getCmakeCacheFilename(): string {
-		const buildDir = this.getCMakeBuildDirectory();
+	public async getCmakeCacheFilename(): Promise<string> {
+		const buildDir = await this.getCMakeBuildDirectory();
 		let cmakeCachefile = "";
 		if (buildDir) {
 			cmakeCachefile = path.join(buildDir, "CMakeCache.txt");
 		}
 		return cmakeCachefile;
+	}
+
+	public async getActiveCMakeBuildType(): Promise<string> {
+		let result = "";
+		try {
+			result = await vscode.commands.executeCommand("cmake.buildType") || "";
+		}
+		catch (error) {
+
+		}
+		return result;
+	}
+
+	public async getActiveCMakeBuildKit(): Promise<string> {
+		let result = "";
+		try {
+			result = await vscode.commands.executeCommand("cmake.buildKit") || "";
+		}
+		catch (error) {
+
+		}
+		return result;
 	}
 
 	get outputchannel(): vscode.OutputChannel {
@@ -127,12 +190,12 @@ class ExtensionManager implements vscode.Disposable {
 		return disp;
 	}
 
-	private setupCMakeCacheWatcher() {
+	private async setupCMakeCacheWatcher() {
 		if (this._cmakeCacheWatcher) {
 			this._cmakeCacheWatcher.close();
 			this._cmakeCacheWatcher = null;
 		}
-		this._cmakeCacheWatcher = fs.watch(this.getCMakeBuildDirectory(), (_, filename) => {
+		this._cmakeCacheWatcher = fs.watch(await this.getCMakeBuildDirectory(), (_, filename) => {
 			if (filename === "CMakeCache.txt") {
 				this.outputchannel.appendLine("CMakeCache.txt changed");
 				this.updateState();
@@ -391,7 +454,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				await _EXT_MANAGER.updateState();
 				const cmake_project_name = _EXT_MANAGER.cmakeCache.getKeyOrDefault("CMAKE_PROJECT_NAME", "");
 				if (cmake_project_name) {
-					const visualstudio_sln = path.join(_EXT_MANAGER.getCMakeBuildDirectory(), `${cmake_project_name}.sln`);
+					const visualstudio_sln = path.join(await _EXT_MANAGER.getCMakeBuildDirectory(), `${cmake_project_name}.sln`);
 					if (fs.existsSync(visualstudio_sln)) {
 						await open(visualstudio_sln);
 					} else {

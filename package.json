@@ -2,7 +2,7 @@
 	"name": "qtvsctools",
 	"displayName": "Qt tools",
 	"description": "Qt tools support for VSCode",
-	"version": "0.4.1",
+	"version": "0.5.0",
 	"publisher": "tonka3000",
 	"preview": true,
 	"license": "MIT",
