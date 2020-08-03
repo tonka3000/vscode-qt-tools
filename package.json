@@ -160,6 +160,12 @@
 						"type": "string",
 						"default": "",
 						"description": "absolute filepath to the Qt Creator executable"
+					},
+					"qttools.loglevel": {
+						"type" : "string",
+						"default" : "none",
+						"description": "set the loglevel",
+						"enum": ["none", "debug", "info", "warning", "error", "critical"]
 					}
 				}
 			}
