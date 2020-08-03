@@ -6,6 +6,7 @@ import { StatusBar } from './status';
 import * as fs from 'fs';
 import { NatvisDownloader } from './downloader';
 import * as open from 'open';
+import { Logger, LogLevel } from './logging';
 
 class ExtensionManager implements vscode.Disposable {
 	public qtManager: qt.Qt | null = null;
@@ -15,10 +16,12 @@ class ExtensionManager implements vscode.Disposable {
 	private readonly _statusbar = new StatusBar();
 	private _cmakeCacheWatcher: fs.FSWatcher | null = null;
 	public natvisDownloader: NatvisDownloader | null = null;
+	public logger: Logger = new Logger();
 
 	constructor(public readonly extensionContext: vscode.ExtensionContext) {
 		this._context = extensionContext;
 		this._channel = vscode.window.createOutputChannel("Qt");
+		this.logger.outputchannel = this._channel;
 		this.qtManager = new qt.Qt(this._channel, this._context.extensionPath);
 		this.cmakeCache = new cmake.CMakeCache();
 		this.natvisDownloader = new NatvisDownloader(this._context);
@@ -27,8 +30,9 @@ class ExtensionManager implements vscode.Disposable {
 			this._channel.appendLine(text);
 		};
 
-		this._context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
-			this.updateState();
+		this._context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async () => {
+			this.logger.debug("config changed event");
+			await this.updateState();
 		}));
 	}
 	/**
@@ -36,16 +40,25 @@ class ExtensionManager implements vscode.Disposable {
 	 */
 	public async updateState() {
 		this._channel.appendLine("update state of ExtensionManager");
+		this.logger.level = this.getLogLevel();
+		this.logger.debug("update state");
 		if (this.cmakeCache) {
 			this.cmakeCache.filename = await this.getCmakeCacheFilename();
+			this.logger.debug(`read cmake cache from ${this.cmakeCache.filename}`);
 			await this.cmakeCache.readCache();
 			const Qt5_DIR = this.cmakeCache.getKeyOrDefault("Qt5_DIR", this.cmakeCache.getKeyOrDefault("Qt5Core_DIR", ""));
 			let qtRootDir = "";
 			if (Qt5_DIR) {
+				this.logger.debug(`search Qt root directory in Qt5_DIR "${Qt5_DIR}"`);
 				qtRootDir = qt.findQtRootDirViaCmakeDir(Qt5_DIR);
+				this.logger.debug(`Qt root directory is "${qtRootDir}"`);
+			}
+			else {
+				this.logger.warning(`Could not find Qt5_DIR or Qt5Core_DIR in ${this.cmakeCache.filename}`)
 			}
 			const extraSearchDirs = this.getExtraSearchDirectories();
 			if (this.qtManager) {
+				this.logger.debug(`extra search directories: ${extraSearchDirs}`);
 				this.qtManager.extraSearchDirectories = extraSearchDirs;
 			}
 			this.setActiveKit(qtRootDir);
@@ -70,8 +83,36 @@ class ExtensionManager implements vscode.Disposable {
 		return result;
 	}
 
+	public getLogLevel(): LogLevel {
+		const config = vscode.workspace.getConfiguration();
+		const logleveltext = config.get("qttools.loglevel") as string;
+		let result = LogLevel.none;
+		switch (logleveltext) {
+			case "none": {
+				result = LogLevel.none;
+			} break;
+			case "debug": {
+				result = LogLevel.debug;
+			} break;
+			case "info": {
+				result = LogLevel.info;
+			} break;
+			case "warning": {
+				result = LogLevel.warning;
+			} break;
+			case "error": {
+				result = LogLevel.error;
+			} break;
+			case "critical": {
+				result = LogLevel.critical;
+			} break;
+		}
+		return result;
+	}
+
 	public setActiveKit(qtRootDir: string) {
 		if (this.qtManager) {
+			this.logger.debug(`set Qt kit to ${qtRootDir}`);
 			this.qtManager.basedir = qtRootDir;
 			this._statusbar.setActiveKitName(this.qtManager.basedir);
 		}
@@ -192,13 +233,15 @@ class ExtensionManager implements vscode.Disposable {
 
 	private async setupCMakeCacheWatcher() {
 		if (this._cmakeCacheWatcher) {
+			this.logger.debug("close old cmake cache watcher");
 			this._cmakeCacheWatcher.close();
 			this._cmakeCacheWatcher = null;
 		}
-		this._cmakeCacheWatcher = fs.watch(await this.getCMakeBuildDirectory(), (_, filename) => {
+		this.logger.debug(`set cmake cache watcher on ${await this.getCMakeBuildDirectory()}`);
+		this._cmakeCacheWatcher = fs.watch(await this.getCMakeBuildDirectory(), async (_, filename) => {
 			if (filename === "CMakeCache.txt") {
 				this.outputchannel.appendLine("CMakeCache.txt changed");
-				this.updateState();
+				await this.updateState();
 			}
 		});
 	}
@@ -222,6 +265,7 @@ class ExtensionManager implements vscode.Disposable {
 	}
 
 	public async generateNativsFile() {
+		this.logger.debug("generate natvis file");
 		const natvisTempalteFilename = await this.getNatvisTemplateFilepath();
 		if (fs.existsSync(natvisTempalteFilename)) {
 			const wnf = this.workspaceNatvisFilename();
@@ -235,6 +279,7 @@ class ExtensionManager implements vscode.Disposable {
 				if (!fs.existsSync(basedir)) {
 					fs.mkdirSync(basedir, { recursive: true });
 				}
+				this.logger.debug(`write natvis file to ${wnf}`);
 				fs.writeFileSync(wnf, natvisdata, "utf8");
 			}
 		} else {
@@ -279,6 +324,7 @@ class ExtensionManager implements vscode.Disposable {
 			}
 
 			if (launch_change_required) {
+				this.logger.debug("inject natvis file into launch.json");
 				this.outputchannel.appendLine("inject natvis file into launch.json");
 				config.update('configurations', values, false);
 			}
@@ -289,6 +335,9 @@ class ExtensionManager implements vscode.Disposable {
 		if (this._cmakeCacheWatcher) {
 			this._cmakeCacheWatcher.close();
 			this._cmakeCacheWatcher = null;
+		}
+		if (this.logger) {
+			this.logger.dispose();
 		}
 		this.natvisDownloader = null;
 	}
