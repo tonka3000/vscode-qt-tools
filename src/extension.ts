@@ -51,6 +51,11 @@ class ExtensionManager implements vscode.Disposable {
 			if (Qt5_DIR) {
 				this.logger.debug(`search Qt root directory in Qt5_DIR "${Qt5_DIR}"`);
 				qtRootDir = qt.findQtRootDirViaCmakeDir(Qt5_DIR);
+				if (!qtRootDir) {
+					this.logger.debug(`could not find executables in ${Qt5_DIR}, fallback to PATH search`);
+					// search in PATH
+					qtRootDir = qt.findQtRootDirViaPathEnv();
+				}
 				this.logger.debug(`Qt root directory is "${qtRootDir}"`);
 			}
 			else {
