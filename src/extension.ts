@@ -420,6 +420,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					activeCounter++;
 					logger.debug(`wait for cmake tools to get active (${activeCounter})`);
 					if (activeCounter > 15) { // ~15 seconds timeout
+						logger.debug("cmake tools is not active, timed out");
 						return resolve(); // waiting for cmake tools timed out
 					}
 					setTimeout(isActive, 1000);
