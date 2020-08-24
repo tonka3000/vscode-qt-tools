@@ -33,6 +33,16 @@ At the moment the extension extracts the Qt file locations from CMake only (from
 * There are some situation where the automatic detection mechanism of Qt is not working. If that is the case you can always trigger the `Scan for Qt kits` command in the command palette.
 * The debugger extension use normal natvis xml files (used via the `launch.json` setting `visualizerFile` from the [C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) ). They work really well on windows, but on mac and linux there are some problems, because it is not based on the same implementation. If you have any problems with them create an issue on their issue tracker.
 
+## Variable substitution
+The `cmake.buildDirectory` from `cmake tools` support variable substitution which looks like `${myvariable}` (example `${generator}`).
+
+This extension supports every variable substitution from `cmake tools` when the `cmake tools` extension is installed and active.
+
+If `cmake tools` is not active the extension will fallback to the content of the `cmake.buildDirectory`. In this mode only `${buildType}`, `${buildKit}` and `${workspaceFolder}` are supported variable substitutions!
+
+## Troubleshooting
+If you have problems with the extension just file a issue on [GitHub](https://github.com/tonka3000/vscode-qt-tools/issues). It's mostly a good idea to attach the log output of this extension to the issue. You can active the logger by adding `"qttools.loglevel": "debug"` to your `settings.json` file. Just copy the content of the `Qt` output pane into your GitHub issue.
+
 ## Contributions
 Pull requests are welcome :-D
 

@@ -25,6 +25,7 @@ class ExtensionManager implements vscode.Disposable {
 		this.qtManager = new qt.Qt(this._channel, this._context.extensionPath);
 		this.cmakeCache = new cmake.CMakeCache();
 		this.natvisDownloader = new NatvisDownloader(this._context);
+		this.logger.level = this.getLogLevel();
 
 		this.natvisDownloader.downloadStateCallback = (text: string) => {
 			this._channel.appendLine(text);
@@ -43,6 +44,7 @@ class ExtensionManager implements vscode.Disposable {
 		this.logger.level = this.getLogLevel();
 		this.logger.debug("update state");
 		if (this.cmakeCache) {
+			this.logger.debug(`cmake build directory: ${await this.getCMakeBuildDirectory()}`);
 			this.cmakeCache.filename = await this.getCmakeCacheFilename();
 			this.logger.debug(`read cmake cache from ${this.cmakeCache.filename}`);
 			await this.cmakeCache.readCache();
@@ -189,9 +191,13 @@ class ExtensionManager implements vscode.Disposable {
 	}
 
 	public async getCMakeBuildDirectory(): Promise<string> {
-		const workbenchConfig = vscode.workspace.getConfiguration();
-		let cmakeBuildDir = String(workbenchConfig.get('cmake.buildDirectory'));
-		cmakeBuildDir = await this.resolveSubstitutionVariables(cmakeBuildDir);
+		let cmakeBuildDir = await this.getActiveCMakeBuildDirectory();
+		if (!cmakeBuildDir) {
+			// fallback to config file when we can not get the info from cmake tools extension directly
+			const workbenchConfig = vscode.workspace.getConfiguration();
+			cmakeBuildDir = String(workbenchConfig.get('cmake.buildDirectory'));
+			cmakeBuildDir = await this.resolveSubstitutionVariables(cmakeBuildDir);
+		}
 		return cmakeBuildDir;
 	}
 
@@ -222,6 +228,20 @@ class ExtensionManager implements vscode.Disposable {
 		}
 		catch (error) {
 
+		}
+		return result;
+	}
+
+	public async getActiveCMakeBuildDirectory(): Promise<string> {
+		let result = "";
+		const command = "cmake.buildDirectory";
+		if ((await vscode.commands.getCommands()).includes(command)) {
+			try {
+				result = await vscode.commands.executeCommand(command) || "";
+			}
+			catch (error) {
+
+			}
 		}
 		return result;
 	}
@@ -383,13 +403,37 @@ class ExtensionManager implements vscode.Disposable {
 let _EXT_MANAGER: ExtensionManager | null = null;
 
 export async function activate(context: vscode.ExtensionContext) {
+	_EXT_MANAGER = new ExtensionManager(context);
+	const logger = _EXT_MANAGER.logger;
 
-	const oldCMakeToolsExtension = vscode.extensions.getExtension('ms-vscode.cmake-tools');
-	if (!oldCMakeToolsExtension) {
-		await vscode.window.showWarningMessage('could not find cmake tools');
+	const cmakeTools = vscode.extensions.getExtension('ms-vscode.cmake-tools');
+	if (cmakeTools) {
+		if (!cmakeTools.isActive) {
+			logger.debug("cmake tools extension is not active, waiting for it");
+			let activeCounter = 0;
+			await new Promise((resolve) => {
+				const isActive = () => {
+					if (cmakeTools && cmakeTools.isActive) {
+						logger.debug("cmake tools is active");
+						return resolve();
+					}
+					activeCounter++;
+					logger.debug(`wait for cmake tools to get active (${activeCounter})`);
+					if (activeCounter > 15) { // ~15 seconds timeout
+						logger.debug("cmake tools is not active, timed out");
+						return resolve(); // waiting for cmake tools timed out
+					}
+					setTimeout(isActive, 1000);
+				};
+				isActive();
+			});
+
+		}
+	}
+	else {
+		await vscode.window.showWarningMessage('cmake tools extension is not installed or enabled');
 	}
 
-	_EXT_MANAGER = new ExtensionManager(context);
 	_EXT_MANAGER.updateState();
 
 	_EXT_MANAGER.registerCommand('qttools.launchdesigneronly', async () => {

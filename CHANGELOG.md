@@ -1,8 +1,10 @@
 # Change Log
 
 ## 0.6
+Big shout out to [@Shatur95](https://github.com/Shatur95) for his support 🙏
 - Add logger
 - Open a current file via context menu will now use the underlying document instead of the active one
+- Get cmake.buildDirectory directly from cmake tools extension
 
 ## 0.5
 - add support for ${buildKit} and ${buildType} in `cmake.buildDirectory`
