@@ -22,6 +22,25 @@ function searchFileInDirectories(directories: Array<string>, filenames: Array<st
     return "";
 }
 
+export function findQtRootDirViaPathEnv(): string {
+    let result = "";
+    if ("PATH" in process.env) {
+        const PATH = process.env.PATH || "";
+        let splitter = ":";
+        if (process.platform === "win32") {
+            splitter = ";";
+        }
+        const paths = PATH.split(splitter);
+        const exeExtension = tools.exeExtension();
+        const mocFilenameOnly = `qmake${exeExtension}`;
+        const mocPath = searchFileInDirectories(paths, [mocFilenameOnly]);
+        if (mocPath) {
+            result = path.dirname(mocPath);
+        }
+    }
+    return result;
+}
+
 export function findQtRootDirViaCmakeDir(qt5_dir: string): string {
     let result = "";
     if (fs.existsSync(qt5_dir)) {
@@ -33,7 +52,7 @@ export function findQtRootDirViaCmakeDir(qt5_dir: string): string {
             const mocFilenameOnly = `qmake${exeExtension}`;
             const tmpPath = path.join(tmpBasePath, "bin", mocFilenameOnly);
             if (fs.existsSync(tmpPath)) {
-                return tmpBasePath;
+                return path.dirname(tmpPath);
             }
             else {
                 splits.pop();
@@ -70,7 +89,7 @@ export class Qt {
         let searchdirs = [];
         let filesnames = ["designer" + tools.exeExtension(), "Designer" + tools.exeExtension()];
         if (this.basedir) {
-            searchdirs.push(path.join(this.basedir, "bin"));
+            searchdirs.push(this.basedir);
             if (process.platform === "darwin") {
                 filesnames.push(path.join("Designer.app", "Contents", "MacOS", "Designer"));
             }
@@ -103,7 +122,7 @@ export class Qt {
         let searchdirs = [];
         let filesnames = ["assistant" + tools.exeExtension(), "Assistant" + tools.exeExtension()];
         if (this.basedir) {
-            searchdirs.push(path.join(this.basedir, "bin"));
+            searchdirs.push(this.basedir);
             if (process.platform === "darwin") {
                 filesnames.push(path.join("Assistant.app", "Contents", "MacOS", "Assistant"));
             }
