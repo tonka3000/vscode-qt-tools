@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.6
+- Add logger
+- Open a current file via context menu will now use the underlying document instead of the active one
+
 ## 0.5
 - add support for ${buildKit} and ${buildType} in `cmake.buildDirectory`
 

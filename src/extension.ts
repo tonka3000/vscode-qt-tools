@@ -405,10 +405,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.currentfileindesigner', async () => {
+	_EXT_MANAGER.registerCommand('qttools.currentfileindesigner', async (uri: vscode.Uri) => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
 			await _EXT_MANAGER.updateState();
-			const current_file = _EXT_MANAGER.getActiveDocumentFilename();
+			const current_file = uri.fsPath;
 			if (current_file) {
 				try {
 					_EXT_MANAGER.qtManager.launchDesigner(current_file);
@@ -465,10 +465,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.currentfileincreator', async () => {
+	_EXT_MANAGER.registerCommand('qttools.currentfileincreator', async (uri: vscode.Uri) => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
 			await _EXT_MANAGER.updateState();
-			const current_file = _EXT_MANAGER.getActiveDocumentFilename();
+			const current_file = uri.fsPath;
 			if (current_file) {
 				try {
 					_EXT_MANAGER.qtManager.launchCreator(current_file);
