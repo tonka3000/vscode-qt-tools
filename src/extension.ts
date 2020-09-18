@@ -4,9 +4,11 @@ import * as qt from './qt';
 import * as cmake from './cmake';
 import { StatusBar } from './status';
 import * as fs from 'fs';
+import { promises as afs } from 'fs';
 import { NatvisDownloader } from './downloader';
 import * as open from 'open';
 import { Logger, LogLevel } from './logging';
+import { fileExists } from './tools';
 
 class ExtensionManager implements vscode.Disposable {
 	public qtManager: qt.Qt | null = null;
@@ -52,11 +54,11 @@ class ExtensionManager implements vscode.Disposable {
 			let qtRootDir = "";
 			if (Qt5_DIR) {
 				this.logger.debug(`search Qt root directory in Qt5_DIR "${Qt5_DIR}"`);
-				qtRootDir = qt.findQtRootDirViaCmakeDir(Qt5_DIR);
+				qtRootDir = await qt.findQtRootDirViaCmakeDir(Qt5_DIR);
 				if (!qtRootDir) {
 					this.logger.debug(`could not find executables in ${Qt5_DIR}, fallback to PATH search`);
 					// search in PATH
-					qtRootDir = qt.findQtRootDirViaPathEnv();
+					qtRootDir = await qt.findQtRootDirViaPathEnv();
 				}
 				this.logger.debug(`Qt root directory is "${qtRootDir}"`);
 			}
@@ -72,11 +74,11 @@ class ExtensionManager implements vscode.Disposable {
 			this.setupCMakeCacheWatcher();
 			if (qtRootDir) {
 				await this.generateNativsFile();
-				this.injectNatvisFile();
+				await this.injectNatvisFile();
 			}
 		}
 		if (this.qtManager) {
-			this.qtManager.creatorFilename = this.getCreatorFilenameSetting();
+			this.qtManager.setCreatorFilename(this.getCreatorFilenameSetting());
 		}
 	}
 
@@ -292,35 +294,35 @@ class ExtensionManager implements vscode.Disposable {
 	public async generateNativsFile() {
 		this.logger.debug("generate natvis file");
 		const natvisTempalteFilename = await this.getNatvisTemplateFilepath();
-		if (fs.existsSync(natvisTempalteFilename)) {
-			const wnf = this.workspaceNatvisFilename();
+		if (await fileExists(natvisTempalteFilename)) {
+			const wnf = await this.workspaceNatvisFilename();
 			if (wnf) {
-				const template = fs.readFileSync(natvisTempalteFilename, "utf8");
+				const template = await afs.readFile(natvisTempalteFilename, "utf8");
 				let qtNamepsace = "";
 				let normalizedTemplateData = template.replace(/##NAMESPACE##::/g, "%%QT_NAMESPACE%%"); // normalize qtvstools style macros to our ones
 				normalizedTemplateData = normalizedTemplateData.replace(/##NAMESPACE##/g, "%%QT_NAMESPACE%%"); // normalize qtvstools style macros to our ones
 				const natvisdata = normalizedTemplateData.replace(/%%QT_NAMESPACE%%/g, qtNamepsace); // TODO extract qt namespace from headers
 				const basedir = path.dirname(wnf);
-				if (!fs.existsSync(basedir)) {
-					fs.mkdirSync(basedir, { recursive: true });
+				if (!await fileExists(basedir)) {
+					await afs.mkdir(basedir, { recursive: true });
 				}
 				this.logger.debug(`write natvis file to ${wnf}`);
-				fs.writeFileSync(wnf, natvisdata, "utf8");
+				await afs.writeFile(wnf, natvisdata, "utf8");
 			}
 		} else {
 			this.outputchannel.appendLine(`could not find natvis template file ${natvisTempalteFilename}`);
 		}
 	}
 
-	public injectNatvisFile() {
+	public async injectNatvisFile() {
 		const workbenchConfig = vscode.workspace.getConfiguration();
 		let shouldInjectnatvisFile = workbenchConfig.get('qttools.injectNatvisFile') as boolean;
 		if (!shouldInjectnatvisFile) {
 			return;
 		}
-		const nvf = this.workspaceNatvisFilename();
-		if (fs.existsSync(nvf)) {
-			const nvf_launch = this.workspaceNatvisFilename(true); // at the moment the natvis filepath had to be resolved
+		const nvf = await this.workspaceNatvisFilename();
+		if (await fileExists(nvf)) {
+			const nvf_launch = await this.workspaceNatvisFilename(true); // at the moment the natvis filepath had to be resolved
 			const config = vscode.workspace.getConfiguration('launch');
 
 			let values = config.get('configurations') as Array<any>;
@@ -367,7 +369,7 @@ class ExtensionManager implements vscode.Disposable {
 		this.natvisDownloader = null;
 	}
 
-	public workspaceNatvisFilename(resovled: boolean = true): string {
+	public async workspaceNatvisFilename(resovled: boolean = true): Promise<string> {
 		let result = "";
 		const natvis_filename = "qt.natvis.xml";
 
@@ -383,7 +385,7 @@ class ExtensionManager implements vscode.Disposable {
 				const workspaceFolder = vscode.workspace.rootPath;
 				if (workspaceFolder) {
 					const vscodeFolder = path.join(workspaceFolder, ".vscode");
-					if (fs.existsSync(vscodeFolder)) {
+					if (await fileExists(vscodeFolder)) {
 						result = path.join(vscodeFolder, "qt.natvis.xml");
 
 					}
@@ -440,7 +442,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
 			await _EXT_MANAGER.updateState();
 			try {
-				_EXT_MANAGER.qtManager.launchDesigner();
+				await _EXT_MANAGER.qtManager.launchDesigner();
 			} catch (error) {
 				const ex: Error = error;
 				_EXT_MANAGER.outputchannel.appendLine(`error during launching Qt Designer: ${ex.message}`);
@@ -455,7 +457,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			const current_file = uri.fsPath;
 			if (current_file) {
 				try {
-					_EXT_MANAGER.qtManager.launchDesigner(current_file);
+					await _EXT_MANAGER.qtManager.launchDesigner(current_file);
 				} catch (error) {
 					const ex: Error = error;
 					_EXT_MANAGER.outputchannel.appendLine(`error during launching Qt Designer: ${ex.message}`);
@@ -553,7 +555,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				const cmake_project_name = _EXT_MANAGER.cmakeCache.getKeyOrDefault("CMAKE_PROJECT_NAME", "");
 				if (cmake_project_name) {
 					const visualstudio_sln = path.join(await _EXT_MANAGER.getCMakeBuildDirectory(), `${cmake_project_name}.sln`);
-					if (fs.existsSync(visualstudio_sln)) {
+					if (await fileExists(visualstudio_sln)) {
 						await open(visualstudio_sln);
 					} else {
 						throw new Error(`Visual Studio solution does not exist '${visualstudio_sln}'`);

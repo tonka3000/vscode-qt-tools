@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import { promises as afs } from 'fs';
 import * as path from 'path';
 import * as tools from './tools';
 import { platform } from "os";
@@ -6,14 +6,14 @@ import * as vscode from 'vscode';
 import { spawn, execSync } from 'child_process';
 import * as os from "os";
 
-function searchFileInDirectories(directories: Array<string>, filenames: Array<string>): string {
+async function searchFileInDirectories(directories: Array<string>, filenames: Array<string>): Promise<string> {
     for (let i = 0; i < directories.length; i++) {
         const dir = directories[i];
         if (dir) {
             for (let j = 0; j < filenames.length; j++) {
                 const file = filenames[j];
                 const search_path = path.join(dir, file);
-                if (fs.existsSync(search_path)) {
+                if (await tools.fileExists(search_path)) {
                     return search_path;
                 }
             }
@@ -22,7 +22,7 @@ function searchFileInDirectories(directories: Array<string>, filenames: Array<st
     return "";
 }
 
-export function findQtRootDirViaPathEnv(): string {
+export async function findQtRootDirViaPathEnv(): Promise<string> {
     let result = "";
     if ("PATH" in process.env) {
         const PATH = process.env.PATH || "";
@@ -33,7 +33,7 @@ export function findQtRootDirViaPathEnv(): string {
         const paths = PATH.split(splitter);
         const exeExtension = tools.exeExtension();
         const mocFilenameOnly = `qmake${exeExtension}`;
-        const mocPath = searchFileInDirectories(paths, [mocFilenameOnly]);
+        const mocPath = await searchFileInDirectories(paths, [mocFilenameOnly]);
         if (mocPath) {
             result = path.dirname(mocPath);
         }
@@ -41,9 +41,9 @@ export function findQtRootDirViaPathEnv(): string {
     return result;
 }
 
-export function findQtRootDirViaCmakeDir(qt5_dir: string): string {
+export async function findQtRootDirViaCmakeDir(qt5_dir: string): Promise<string> {
     let result = "";
-    if (fs.existsSync(qt5_dir)) {
+    if (await tools.fileExists(qt5_dir)) {
         const norm = qt5_dir.replace("\\", "/");
         let splits = norm.split("/");
         while (splits.length > 0) {
@@ -51,7 +51,7 @@ export function findQtRootDirViaCmakeDir(qt5_dir: string): string {
             const exeExtension = tools.exeExtension();
             const mocFilenameOnly = `qmake${exeExtension}`;
             const tmpPath = path.join(tmpBasePath, "bin", mocFilenameOnly);
-            if (fs.existsSync(tmpPath)) {
+            if (await tools.fileExists(tmpPath)) {
                 return path.dirname(tmpPath);
             }
             else {
@@ -85,7 +85,7 @@ export class Qt {
         this._extraSearchDirectories = value;
     }
 
-    public get designerFilename(): string {
+    public async designerFilename(): Promise<string> {
         let searchdirs = [];
         let filesnames = ["designer" + tools.exeExtension(), "Designer" + tools.exeExtension()];
         if (this.basedir) {
@@ -98,10 +98,10 @@ export class Qt {
         return searchFileInDirectories(searchdirs, filesnames);
     }
 
-    public launchDesigner(filename: string = "") {
+    public async launchDesigner(filename: string = "") {
         this.outputchannel.appendLine(`launch designer process`);
-        const designerFilename = this.designerFilename;
-        if (!fs.existsSync(designerFilename)) {
+        const designerFilename = await this.designerFilename();
+        if (!await tools.fileExists(designerFilename)) {
             throw new Error(`qt designer executable does not exists '${designerFilename}'`);
         }
         let args: string[] = [];
@@ -118,7 +118,7 @@ export class Qt {
         });
     }
 
-    public get assistantFilename(): string {
+    public async assistantFilename(): Promise<string> {
         let searchdirs = [];
         let filesnames = ["assistant" + tools.exeExtension(), "Assistant" + tools.exeExtension()];
         if (this.basedir) {
@@ -128,17 +128,17 @@ export class Qt {
             }
         }
         searchdirs = searchdirs.concat(this.extraSearchDirectories);
-        return searchFileInDirectories(searchdirs, filesnames);
+        return await searchFileInDirectories(searchdirs, filesnames);
     }
 
-    private getInstalledCreatorFilenameWindows(): string {
+    private async getInstalledCreatorFilenameWindows(): Promise<string> {
         let result = "";
         try {
             const getCreator = path.join(this._extensionRootFolder, "res", "getcreator.ps1");
             const creatorRootFolder = execSync(`powershell -executionpolicy bypass "${getCreator}"`).toString().trim();
-            if (fs.existsSync(creatorRootFolder)) {
+            if (await tools.fileExists(creatorRootFolder)) {
                 const creatorExec = path.join(creatorRootFolder, "bin", "qtcreator.exe");
-                if (fs.existsSync(creatorExec)) {
+                if (await tools.fileExists(creatorExec)) {
                     result = creatorExec;
                 }
             }
@@ -148,7 +148,7 @@ export class Qt {
         return result;
     }
 
-    public get creatorFilename(): string {
+    public async creatorFilename(): Promise<string> {
         if (this._creatorFilename) {
             if (process.platform === "darwin" && this._creatorFilename.endsWith(".app")) {
                 return path.join(this._creatorFilename, "Contents", "MacOS", "Qt Creator");
@@ -160,25 +160,25 @@ export class Qt {
         let searchdirs = [];
         if (process.platform === "darwin") {
             const appName = path.join(os.homedir(), "Qt", "Qt Creator.app", "Contents", "MacOS", "Qt Creator");
-            if (fs.existsSync(appName)) {
+            if (await tools.fileExists(appName)) {
                 result = appName;
             }
         } else if (process.platform === "win32") {
-            result = this.getInstalledCreatorFilenameWindows();
+            result = await this.getInstalledCreatorFilenameWindows();
         } else {
             // TODO auto detection for linux
         }
         return result;
     }
 
-    public set creatorFilename(value: string) {
+    public setCreatorFilename(value: string) {
         this._creatorFilename = value;
     }
 
-    public launchAssistant() {
+    public async launchAssistant() {
         this.outputchannel.appendLine(`launch assistant process`);
-        const assistantFilename = this.assistantFilename;
-        if (!fs.existsSync(assistantFilename)) {
+        const assistantFilename = await this.assistantFilename();
+        if (!await tools.fileExists(assistantFilename)) {
             throw new Error(`qt assistant executable does not exists '${assistantFilename}'`);
         }
         const assistant = spawn(assistantFilename, []);
@@ -187,15 +187,15 @@ export class Qt {
         });
     }
 
-    public launchCreator(filename: string = "") {
+    public async launchCreator(filename: string = "") {
         this.outputchannel.appendLine(`launch creator process`);
-        const creatorFilename = this.creatorFilename;
-        if (!fs.existsSync(creatorFilename)) {
+        const creatorFilename = await this.creatorFilename();
+        if (!await tools.fileExists(creatorFilename)) {
             throw new Error(`qt creator executable does not exists '${creatorFilename}'`);
         }
         let args: string[] = [];
         if (filename.length > 0) {
-            if (!fs.lstatSync(filename).isDirectory()) { // directories will be not checked
+            if (!(await afs.lstat(filename)).isDirectory()) { // directories will be not checked
                 const extension = path.extname(filename);
                 if (extension !== ".qrc" && extension !== ".ui") {
                     throw new Error(`file extension '${extension}' is not support by Qt Creator`);
