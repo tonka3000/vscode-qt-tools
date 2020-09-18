@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"module": "commonjs",
+		"moduleResolution": "node", /* required to find open and vscode-test node_module*/
 		"target": "es6",
 		"outDir": "out",
 		"lib": [
