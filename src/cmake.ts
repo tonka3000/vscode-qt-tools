@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as readline from 'readline';
+import { fileExists } from './tools';
 
 export async function getCmakeCacheValue(key: string, cachefile: string) {
     let cache = new CMakeCache(cachefile);
@@ -33,9 +34,9 @@ export class CMakeCache {
     }
 
     public async readCache(): Promise<boolean> {
-        return new Promise<boolean>((resolve/*, reject*/) => {
+        return new Promise<boolean>(async (resolve/*, reject*/) => {
             this.values = {};
-            if (this._filename && fs.existsSync(this._filename)) {
+            if (this._filename && await fileExists(this._filename)) {
                 const rl = readline.createInterface({
                     input: fs.createReadStream(this._filename),
                     output: process.stdout,
