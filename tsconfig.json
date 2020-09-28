@@ -2,10 +2,10 @@
 	"compilerOptions": {
 		"module": "commonjs",
 		"moduleResolution": "node", /* required to find open and vscode-test node_module*/
-		"target": "es6",
+		"target": "es2019",
 		"outDir": "out",
 		"lib": [
-			"es6"
+			"es2019"
 		],
 		"sourceMap": true,
 		"rootDir": "src",

@@ -30,7 +30,11 @@
 			"outFiles": [
 				"${workspaceFolder}/out/test/**/*.js"
 			],
-			"preLaunchTask": "${defaultBuildTask}"
+			"preLaunchTask": "${defaultBuildTask}",
+			"smartStep": true,
+			"skipFiles": [
+				"<node_internals>/**/*.js"
+			]
 		}
 	]
 }
