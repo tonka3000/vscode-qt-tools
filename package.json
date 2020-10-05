@@ -199,11 +199,12 @@
 		"webpack": "webpack --mode development",
 		"webpack-dev": "webpack --mode development --watch",
 		"test-compile": "tsc -p ./ && npm run webpack",
-		"watch": "webpack --mode development --watch",
+		"webpack-watch": "webpack --mode development --watch",
 		"pretest": "npm run test-compile",
 		"test": "node ./out/test/runTest.js",
 		"package": "npx vsce package",
-		"publish": "npx vsce publish"
+		"publish": "npx vsce publish",
+		"watch": "tsc -watch -p ./"
 	},
 	"devDependencies": {
 		"@types/download": "^6.2.4",
