@@ -16,7 +16,7 @@ jobs:
         env:
           VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
 
-  delpoy_openvsx:
+  deploy_openvsx:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
