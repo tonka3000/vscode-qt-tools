@@ -98,21 +98,19 @@ export class Qt {
         return searchFileInDirectories(searchdirs, filesnames);
     }
 
-    public async launchDesigner(filename: string = "") {
+    public async launchDesigner(filenames: string[] = []) {
         this.outputchannel.appendLine(`launch designer process`);
         const designerFilename = await this.designerFilename();
         if (!await tools.fileExists(designerFilename)) {
-            throw new Error(`qt designer executable does not exists '${designerFilename}'`);
+            throw new Error(`qt designer executable does not exist '${designerFilename}'`);
         }
-        let args: string[] = [];
-        if (filename.length > 0) {
+        for (var filename of filenames) {
             const extension = path.extname(filename);
             if (extension !== ".ui") {
                 throw new Error(`file extension '${extension}' is not support by Qt Designer`);
             }
-            args = [filename];
         }
-        const designer = spawn(designerFilename, args);
+        const designer = spawn(designerFilename, filenames);
         designer.on('close', (code) => {
             this.outputchannel.appendLine(`qt designer child process exited with code ${code}`);
         });
@@ -179,7 +177,7 @@ export class Qt {
         this.outputchannel.appendLine(`launch assistant process`);
         const assistantFilename = await this.assistantFilename();
         if (!await tools.fileExists(assistantFilename)) {
-            throw new Error(`qt assistant executable does not exists '${assistantFilename}'`);
+            throw new Error(`qt assistant executable does not exist '${assistantFilename}'`);
         }
         const assistant = spawn(assistantFilename, []);
         assistant.on('close', (code) => {
@@ -191,7 +189,7 @@ export class Qt {
         this.outputchannel.appendLine(`launch creator process`);
         const creatorFilename = await this.creatorFilename();
         if (!await tools.fileExists(creatorFilename)) {
-            throw new Error(`qt creator executable does not exists '${creatorFilename}'`);
+            throw new Error(`qt creator executable does not exist '${creatorFilename}'`);
         }
         let args: string[] = [];
         if (filename.length > 0) {

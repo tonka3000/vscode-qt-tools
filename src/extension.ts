@@ -451,13 +451,19 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.currentfileindesigner', async (uri: vscode.Uri) => {
+	_EXT_MANAGER.registerCommand('qttools.currentfileindesigner', async (_: vscode.Uri, selectedFiles: vscode.Uri[]) => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
 			await _EXT_MANAGER.updateState();
-			const current_file = uri.fsPath;
-			if (current_file) {
+			let files: string[] = [];
+			for (var selectedFile of selectedFiles) {
+				const path = selectedFile.fsPath;
+				if (path) {
+					files.push(path);
+				}
+			}
+			if (files.length > 0) {
 				try {
-					await _EXT_MANAGER.qtManager.launchDesigner(current_file);
+					await _EXT_MANAGER.qtManager.launchDesigner(files);
 				} catch (error) {
 					const ex: Error = error;
 					_EXT_MANAGER.outputchannel.appendLine(`error during launching Qt Designer: ${ex.message}`);
@@ -465,8 +471,8 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 			}
 			else {
-				_EXT_MANAGER.outputchannel.appendLine("no current file select in workspace");
-				vscode.window.showErrorMessage("no current file selected");
+				_EXT_MANAGER.outputchannel.appendLine("no files selected");
+				vscode.window.showErrorMessage("no files selected");
 			}
 		}
 	});
