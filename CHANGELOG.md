@@ -1,15 +1,26 @@
 # Change Log
 
+## 0.7
+
+- Add support for open multiple selected files at once in Qt designer. Thanks to [@cobalt77](https://github.com/cobalt77) for the contribution 🙏.
+- Use webpack to reduce bundle size of the extension and also be much faster in loading during startup
+- Reduce the use of sync functions and try to use async functions to avoid blocking the main thread
+- Bump up version of `bl` to `1.2.3` to avoid security issues
+
 ## 0.6
+
 Big shout out to [@Shatur95](https://github.com/Shatur95) for his support 🙏
+
 - Add logger
 - Open a current file via context menu will now use the underlying document instead of the active one
 - Get cmake.buildDirectory directly from cmake tools extension
 
 ## 0.5
+
 - add support for ${buildKit} and ${buildType} in `cmake.buildDirectory`
 
 ## 0.4.1
+
 - upgrade dependencies
 
 ## 0.4.0

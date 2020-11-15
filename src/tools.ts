@@ -1,4 +1,11 @@
 import * as fs from 'fs';
+import { promises as afs } from 'fs';
+
+export async function fileExists(filename: string): Promise<boolean> {
+    return fs.promises.access(filename, fs.constants.F_OK)
+        .then(() => true)
+        .catch(() => false);
+}
 
 export function exeExtension(): string {
     let result = "";
@@ -8,10 +15,10 @@ export function exeExtension(): string {
     return result;
 }
 
-export function getModTimeFromFile(filename: string): Date {
+export async function getModTimeFromFile(filename: string): Promise<Date> {
     let result = new Date();
-    if (fs.existsSync(filename)) {
-        result = fs.statSync(filename).mtime;
+    if (await fileExists(filename)) {
+        result = (await afs.stat(filename)).mtime;
     }
     return result;
 }

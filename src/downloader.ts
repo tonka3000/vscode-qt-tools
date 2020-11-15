@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import * as download from 'download';
 import * as path from 'path';
-import * as fs from 'fs';
+import { promises as afs } from 'fs';
+import { fileExists } from './tools';
 import * as shajs from 'sha.js';
 import * as rimraf from 'rimraf';
 
@@ -21,8 +22,8 @@ export class NatvisDownloader implements vscode.Disposable {
         return path.join(this._context.globalStoragePath, "natvis");
     }
 
-    public clearDownloadCache() {
-        if (fs.existsSync(this.natvisFolder)) {
+    public async clearDownloadCache() {
+        if (await fileExists(this.natvisFolder)) {
             rimraf.sync(this.natvisFolder);
         }
     }
@@ -35,7 +36,7 @@ export class NatvisDownloader implements vscode.Disposable {
 
     public async inCache(url: string): Promise<boolean> {
         const cache_file = await this.getCacheFilename(url);
-        return fs.existsSync(cache_file);
+        return await fileExists(cache_file);
     }
 
     private reportDownloadState(text: string) {
@@ -51,11 +52,11 @@ export class NatvisDownloader implements vscode.Disposable {
      * @returns absolute path to the local downloaded file
      */
     public async download(url: string): Promise<string> {
-        if (!fs.existsSync(this.natvisFolder)) {
-            fs.mkdirSync(this.natvisFolder, { recursive: true });
+        if (!await fileExists(this.natvisFolder)) {
+            await afs.mkdir(this.natvisFolder, { recursive: true });
         }
         const cache_file = await this.getCacheFilename(url);
-        if (fs.existsSync(cache_file)) {
+        if (await fileExists(cache_file)) {
             return cache_file;
         }
         this.reportDownloadState(`downlad natvis file from ${url}`);
@@ -63,8 +64,8 @@ export class NatvisDownloader implements vscode.Disposable {
         this.reportDownloadState("download succeeded");
         const text = data.toString();
         if (text.indexOf("QString") >= 0) {
-            fs.writeFileSync(cache_file, data);
-            if (fs.existsSync(cache_file)) {
+            await afs.writeFile(cache_file, data);
+            if (await fileExists(cache_file)) {
                 return cache_file;
             }
         } else {
