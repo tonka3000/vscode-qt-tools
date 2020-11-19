@@ -173,13 +173,13 @@ export class Qt {
         this._creatorFilename = value;
     }
 
-    public async launchAssistant() {
+    public async launchAssistant(args: string[] = []) {
         this.outputchannel.appendLine(`launch assistant process`);
         const assistantFilename = await this.assistantFilename();
         if (!await tools.fileExists(assistantFilename)) {
             throw new Error(`qt assistant executable does not exist '${assistantFilename}'`);
         }
-        const assistant = spawn(assistantFilename, []);
+        const assistant = spawn(assistantFilename, args);
         assistant.on('close', (code) => {
             this.outputchannel.appendLine(`qt assistant child process exited with code ${code}`);
         });

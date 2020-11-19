@@ -9,6 +9,7 @@ import { NatvisDownloader } from './downloader';
 import * as open from 'open';
 import { Logger, LogLevel } from './logging';
 import { fileExists } from './tools';
+import { QtHelp } from './help';
 
 class ExtensionManager implements vscode.Disposable {
 	public qtManager: qt.Qt | null = null;
@@ -19,9 +20,11 @@ class ExtensionManager implements vscode.Disposable {
 	private _cmakeCacheWatcher: fs.FSWatcher | null = null;
 	public natvisDownloader: NatvisDownloader | null = null;
 	public logger: Logger = new Logger();
+	public help: QtHelp | null = null;
 
 	constructor(public readonly extensionContext: vscode.ExtensionContext) {
 		this._context = extensionContext;
+		this.help = new QtHelp(extensionContext);
 		this._channel = vscode.window.createOutputChannel("Qt");
 		this.logger.outputchannel = this._channel;
 		this.qtManager = new qt.Qt(this._channel, this._context.extensionPath);
@@ -366,6 +369,9 @@ class ExtensionManager implements vscode.Disposable {
 		if (this.logger) {
 			this.logger.dispose();
 		}
+		if (this.help) {
+			this.help.dispose();
+		}
 		this.natvisDownloader = null;
 	}
 
@@ -473,6 +479,32 @@ export async function activate(context: vscode.ExtensionContext) {
 			else {
 				_EXT_MANAGER.outputchannel.appendLine("no files selected");
 				vscode.window.showErrorMessage("no files selected");
+			}
+		}
+	});
+
+	_EXT_MANAGER.registerCommand('qttools.launchhelp', async () => {
+		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
+			await _EXT_MANAGER.updateState();
+			try {
+				const editor = vscode.window.activeTextEditor;
+				if (editor) {
+					if (editor.selection.isEmpty) {
+						const wordrange = editor.document.getWordRangeAtPosition(editor.selection.active);
+						if (wordrange) {
+							const word = editor.document.getText(wordrange);
+							_EXT_MANAGER.logger.debug(`marked word: ${word}`);
+							if (_EXT_MANAGER.help) {
+								await _EXT_MANAGER.help.search(word);
+								return;
+							}
+						}
+					}
+				}
+			} catch (error) {
+				const ex: Error = error;
+				_EXT_MANAGER.outputchannel.appendLine(`error during launching Qt help: ${ex.message}`);
+				vscode.window.showErrorMessage(`error launching Qt help: ${ex.message}`);
 			}
 		}
 	});

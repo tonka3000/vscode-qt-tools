@@ -25,6 +25,7 @@
 		"onCommand:qttools.currentfileindesigner",
 		"onCommand:qttools.launchdesigneronly",
 		"onCommand:qttools.launchassistant",
+		"onCommand:qttools.launchhelp",
 		"onCommand:qttools.launchcreatoronly",
 		"onCommand:qttools.workspaceincreator",
 		"onCommand:qttools.currentfileincreator",
@@ -47,6 +48,11 @@
 			{
 				"command": "qttools.launchassistant",
 				"title": "Launch Qt Assistant",
+				"category": "Qt"
+			},
+			{
+				"command": "qttools.launchhelp",
+				"title": "Launch Qt help",
 				"category": "Qt"
 			},
 			{
@@ -93,6 +99,10 @@
 				{
 					"command": "qttools.launchvisualstudio",
 					"when": "isWindows"
+				},
+				{
+					"command": "qttools.launchhelp",
+					"when": "resourceExtname == .cpp || resourceExtname == .h"
 				}
 			],
 			"explorer/context": [
