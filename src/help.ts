@@ -8,9 +8,7 @@ export class QtHelp implements vscode.Disposable {
         this._context = extensionContext;
     }
 
-    public async search(text: string) {
-        const term = text.toLowerCase();
-        const url = `https://doc.qt.io/qt-5/${term}.html`;
+    private async displayUrl(url: string) {
         try {
 
             const content = await this.getWebViewContent(url);
@@ -20,7 +18,7 @@ export class QtHelp implements vscode.Disposable {
             else {
                 this._webview = vscode.window.createWebviewPanel(
                     'docs',
-                    'Qt help',
+                    'Qt online help',
                     {
                         viewColumn: vscode.ViewColumn.Beside,
                         preserveFocus: false
@@ -42,6 +40,22 @@ export class QtHelp implements vscode.Disposable {
                 vscode.window.showInformationMessage((error as Error).message);
             }
         }
+    }
+
+    public async displaySearchResults(text: string) {
+        const safeparam = encodeURIComponent(text);
+        const url = `https://doc.qt.io/qt-5/search-results.html?q=${safeparam}`;
+        await this.displayUrl(url);
+    }
+
+    public async searchKeyword(text: string) {
+        let url = "https://doc.qt.io/qt-5/";
+        if (text) {
+            const term = text.toLowerCase();
+            url += term + ".html";
+        }
+        //const url = `https://doc.qt.io/qt-5/${term}.html`;
+        await this.displayUrl(url);
     }
 
     private async getWebViewContent(url: string): Promise<string> {
@@ -67,7 +81,7 @@ export class QtHelp implements vscode.Disposable {
                 }
               </style>
         </head>
-        <body>    
+        <body>
         <iframe src="${url}" width="100%" height="100%" ></iframe>
         </body>
         </html>`;

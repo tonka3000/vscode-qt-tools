@@ -25,7 +25,8 @@
 		"onCommand:qttools.currentfileindesigner",
 		"onCommand:qttools.launchdesigneronly",
 		"onCommand:qttools.launchassistant",
-		"onCommand:qttools.launchhelp",
+		"onCommand:qttools.launchonlinehelp",
+		"onCommand:qttools.searchonelinehelp",
 		"onCommand:qttools.launchcreatoronly",
 		"onCommand:qttools.workspaceincreator",
 		"onCommand:qttools.currentfileincreator",
@@ -51,8 +52,13 @@
 				"category": "Qt"
 			},
 			{
-				"command": "qttools.launchhelp",
-				"title": "Launch Qt help",
+				"command": "qttools.launchonlinehelp",
+				"title": "launch online help",
+				"category": "Qt"
+			},
+			{
+				"command": "qttools.searchonelinehelp",
+				"title": "Search online help",
 				"category": "Qt"
 			},
 			{
@@ -101,7 +107,7 @@
 					"when": "isWindows"
 				},
 				{
-					"command": "qttools.launchhelp",
+					"command": "qttools.launchonlinehelp",
 					"when": "resourceExtname == .cpp || resourceExtname == .h"
 				}
 			],

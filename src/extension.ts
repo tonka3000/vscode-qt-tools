@@ -483,28 +483,53 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.launchhelp', async () => {
+	_EXT_MANAGER.registerCommand('qttools.launchonlinehelp', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
 			await _EXT_MANAGER.updateState();
 			try {
+				let word = "";
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
 					if (editor.selection.isEmpty) {
 						const wordrange = editor.document.getWordRangeAtPosition(editor.selection.active);
 						if (wordrange) {
-							const word = editor.document.getText(wordrange);
+							word = editor.document.getText(wordrange);
 							_EXT_MANAGER.logger.debug(`marked word: ${word}`);
-							if (_EXT_MANAGER.help) {
-								await _EXT_MANAGER.help.search(word);
-								return;
-							}
 						}
 					}
+				}
+				if (_EXT_MANAGER.help) {
+					await _EXT_MANAGER.help.searchKeyword(word);
+					return;
 				}
 			} catch (error) {
 				const ex: Error = error;
 				_EXT_MANAGER.outputchannel.appendLine(`error during launching Qt help: ${ex.message}`);
 				vscode.window.showErrorMessage(`error launching Qt help: ${ex.message}`);
+			}
+		}
+	});
+
+	_EXT_MANAGER.registerCommand('qttools.searchonelinehelp', async () => {
+		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
+			await _EXT_MANAGER.updateState();
+			try {
+				const query = await vscode.window.showInputBox({
+					value: '',
+					placeHolder: 'enter search term',
+					validateInput: text => {
+						return text === "" ? "search term could not be empty" : null;
+					}
+				});
+				if (query && _EXT_MANAGER.help) {
+					await _EXT_MANAGER.help.displaySearchResults(query);
+					return;
+				}
+			}
+			catch (error) {
+				const ex: Error = error;
+				_EXT_MANAGER.outputchannel.appendLine(`error query Qt help: ${ex.message}`);
+				vscode.window.showErrorMessage(`error query Qt help: ${ex.message}`);
 			}
 		}
 	});
