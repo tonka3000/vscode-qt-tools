@@ -3,41 +3,47 @@ import * as vscode from 'vscode';
 export class QtHelp implements vscode.Disposable {
     private _webview: vscode.WebviewPanel | undefined;
     private _context: vscode.ExtensionContext;
+    public useExternalBrowser = false;
 
     constructor(public readonly extensionContext: vscode.ExtensionContext) {
         this._context = extensionContext;
     }
 
     private async displayUrl(url: string) {
-        try {
-
-            const content = await this.getWebViewContent(url);
-            if (this._webview) {
-                this._webview.reveal(vscode.ViewColumn.Beside);
-            }
-            else {
-                this._webview = vscode.window.createWebviewPanel(
-                    'docs',
-                    'Qt online help',
-                    {
-                        viewColumn: vscode.ViewColumn.Beside,
-                        preserveFocus: false
-                    },
-                    {
-                        enableScripts: true,
-                        enableFindWidget: true,
-                        retainContextWhenHidden: true
-                    }
-                );
-                this._webview.onDidDispose(() => {
-                    this._webview = undefined;
-                }, null, this._context.subscriptions);
-            }
-            this._webview.webview.html = content;
+        if (this.useExternalBrowser) {
+            vscode.env.openExternal(vscode.Uri.parse(url));
         }
-        catch (error) {
-            if ((error as Error).message !== "") {
-                vscode.window.showInformationMessage((error as Error).message);
+        else {
+            try {
+
+                const content = await this.getWebViewContent(url);
+                if (this._webview) {
+                    this._webview.reveal(vscode.ViewColumn.Beside);
+                }
+                else {
+                    this._webview = vscode.window.createWebviewPanel(
+                        'docs',
+                        'Qt online help',
+                        {
+                            viewColumn: vscode.ViewColumn.Beside,
+                            preserveFocus: false
+                        },
+                        {
+                            enableScripts: true,
+                            enableFindWidget: true,
+                            retainContextWhenHidden: true
+                        }
+                    );
+                    this._webview.onDidDispose(() => {
+                        this._webview = undefined;
+                    }, null, this._context.subscriptions);
+                }
+                this._webview.webview.html = content;
+            }
+            catch (error) {
+                if ((error as Error).message !== "") {
+                    vscode.window.showInformationMessage((error as Error).message);
+                }
             }
         }
     }
@@ -54,7 +60,6 @@ export class QtHelp implements vscode.Disposable {
             const term = text.toLowerCase();
             url += term + ".html";
         }
-        //const url = `https://doc.qt.io/qt-5/${term}.html`;
         await this.displayUrl(url);
     }
 

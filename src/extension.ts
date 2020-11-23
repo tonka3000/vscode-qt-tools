@@ -48,6 +48,9 @@ class ExtensionManager implements vscode.Disposable {
 		this._channel.appendLine("update state of ExtensionManager");
 		this.logger.level = this.getLogLevel();
 		this.logger.debug("update state");
+		if (this.help) {
+			this.help.useExternalBrowser = this.getUseExternalBrowserForOnlineHelp();
+		}
 		if (this.cmakeCache) {
 			this.logger.debug(`cmake build directory: ${await this.getCMakeBuildDirectory()}`);
 			this.cmakeCache.filename = await this.getCmakeCacheFilename();
@@ -91,6 +94,16 @@ class ExtensionManager implements vscode.Disposable {
 		let creatorFilename = workbenchConfig.get('qttools.creator') as string;
 		if (creatorFilename) {
 			result = creatorFilename;
+		}
+		return result;
+	}
+
+	public getUseExternalBrowserForOnlineHelp(): boolean {
+		let result = false;
+		const workbenchConfig = vscode.workspace.getConfiguration();
+		let useExternalBrowser = workbenchConfig.get('qttools.useExternalBrowser') as boolean;
+		if (useExternalBrowser) {
+			result = useExternalBrowser;
 		}
 		return result;
 	}
@@ -490,11 +503,13 @@ export async function activate(context: vscode.ExtensionContext) {
 				let word = "";
 				const editor = vscode.window.activeTextEditor;
 				if (editor) {
-					if (editor.selection.isEmpty) {
-						const wordrange = editor.document.getWordRangeAtPosition(editor.selection.active);
-						if (wordrange) {
-							word = editor.document.getText(wordrange);
-							_EXT_MANAGER.logger.debug(`marked word: ${word}`);
+					if (editor.document.fileName.endsWith(".cpp") || editor.document.fileName.endsWith(".h")) {
+						if (editor.selection.isEmpty) {
+							const wordrange = editor.document.getWordRangeAtPosition(editor.selection.active);
+							if (wordrange) {
+								word = editor.document.getText(wordrange);
+								_EXT_MANAGER.logger.debug(`marked word: ${word}`);
+							}
 						}
 					}
 				}
