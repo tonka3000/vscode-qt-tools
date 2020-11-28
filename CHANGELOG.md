@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.8
+
+- Add Qt online help commands. Thanks to for the request [@Shatur95](https://github.com/Shatur95)
+
 ## 0.7
 
 - Add support for open multiple selected files at once in Qt designer. Thanks to [@cobalt77](https://github.com/cobalt77) for the contribution 🙏.

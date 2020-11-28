@@ -2,7 +2,7 @@
 	"name": "qtvsctools",
 	"displayName": "Qt tools",
 	"description": "Qt tools support for VSCode",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"publisher": "tonka3000",
 	"preview": true,
 	"license": "MIT",
@@ -25,6 +25,8 @@
 		"onCommand:qttools.currentfileindesigner",
 		"onCommand:qttools.launchdesigneronly",
 		"onCommand:qttools.launchassistant",
+		"onCommand:qttools.launchonlinehelp",
+		"onCommand:qttools.searchonlinehelp",
 		"onCommand:qttools.launchcreatoronly",
 		"onCommand:qttools.workspaceincreator",
 		"onCommand:qttools.currentfileincreator",
@@ -47,6 +49,16 @@
 			{
 				"command": "qttools.launchassistant",
 				"title": "Launch Qt Assistant",
+				"category": "Qt"
+			},
+			{
+				"command": "qttools.launchonlinehelp",
+				"title": "Online help",
+				"category": "Qt"
+			},
+			{
+				"command": "qttools.searchonlinehelp",
+				"title": "Search Online help",
 				"category": "Qt"
 			},
 			{
@@ -149,6 +161,12 @@
 						"type": "boolean",
 						"default": true,
 						"description": "automatically inject the natvis.xml of Qt into existing launch.json entries",
+						"scope": "resource"
+					},
+					"qttools.useExternalBrowser": {
+						"type": "boolean",
+						"default": false,
+						"description": "use external browser for online help",
 						"scope": "resource"
 					},
 					"qttools.visualizerFile": {
