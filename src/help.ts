@@ -23,7 +23,7 @@ export class QtHelp implements vscode.Disposable {
                 else {
                     this._webview = vscode.window.createWebviewPanel(
                         'docs',
-                        'Qt online help',
+                        'Qt Online help',
                         {
                             viewColumn: vscode.ViewColumn.Beside,
                             preserveFocus: false

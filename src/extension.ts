@@ -525,7 +525,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.searchonelinehelp', async () => {
+	_EXT_MANAGER.registerCommand('qttools.searchonlinehelp', async () => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
 			await _EXT_MANAGER.updateState();
 			try {

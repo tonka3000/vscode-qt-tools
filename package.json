@@ -2,7 +2,7 @@
 	"name": "qtvsctools",
 	"displayName": "Qt tools",
 	"description": "Qt tools support for VSCode",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"publisher": "tonka3000",
 	"preview": true,
 	"license": "MIT",
@@ -26,7 +26,7 @@
 		"onCommand:qttools.launchdesigneronly",
 		"onCommand:qttools.launchassistant",
 		"onCommand:qttools.launchonlinehelp",
-		"onCommand:qttools.searchonelinehelp",
+		"onCommand:qttools.searchonlinehelp",
 		"onCommand:qttools.launchcreatoronly",
 		"onCommand:qttools.workspaceincreator",
 		"onCommand:qttools.currentfileincreator",
@@ -57,8 +57,8 @@
 				"category": "Qt"
 			},
 			{
-				"command": "qttools.searchonelinehelp",
-				"title": "Search online help",
+				"command": "qttools.searchonlinehelp",
+				"title": "Search Online help",
 				"category": "Qt"
 			},
 			{
