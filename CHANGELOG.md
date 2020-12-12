@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.8.1
+
+- Bump ini from 1.3.5 to 1.3.8 to fix a security vulnerability
+
 ## 0.8
 
 - Add Qt online help commands. Thanks to for the request [@Shatur95](https://github.com/Shatur95)
