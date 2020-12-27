@@ -4,7 +4,7 @@
 
 > <span style="color:red; font-weight:bold;">This is NOT an offical tool by The Qt Company!!</span>
 
-This is a Qt extension for VSCode. It is designed to be an similar tool to the [Qt Visual Studio Tools](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123) from The Qt Company, but it try to cooperate with other extensions for some functionality like f.e. debugging.
+This is a Qt extension for VSCode. It is designed to be a similar tool to the [Qt Visual Studio Tools](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123) from The Qt Company, but it tries to cooperate with other extensions for some functionality like f.e. debugging.
 
 At the moment the extension extracts the Qt file locations from CMake only (from [CMake Tools extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) setting `cmake.buildDirectory`), so choosing and different Qt version from disk is not supported at the moment (but if you use cmake already, everything is automatically detected :-) ).
 
