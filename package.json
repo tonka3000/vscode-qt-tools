@@ -248,7 +248,8 @@
 		"open": "^7.0.4",
 		"rimraf": "^3.0.2",
 		"sha.js": "^2.4.11",
-		"vscode-jsonrpc": "^4.0.0"
+		"vscode-jsonrpc": "^4.0.0",
+		"ssri": ">=8.0.1"
 	},
 	"icon": "icon.png",
 	"homepage": "https://github.com/tonka3000/vscode-qt-tools",
