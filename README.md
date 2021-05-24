@@ -2,35 +2,56 @@
 
 > This extension is work in progress, so some command/settings can change over time.
 
-> <span style="color:red; font-weight:bold;">This is NOT an offical tool by The Qt Company!!</span>
+> <span style="color:red; font-weight:bold;">This is NOT an official tool by The Qt Company!!</span>
 
-This is a Qt extension for VSCode. It is designed to be a similar tool to the [Qt Visual Studio Tools](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123) from The Qt Company, but it tries to cooperate with other extensions for some functionality like f.e. debugging.
+This is a Qt extension for VSCode. It is designed to be a similar tool to the [Qt Visual Studio Tools](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123) from The Qt Company, but it tries to cooperate with other extensions for some functionality like e.g. debugging.
 
-At the moment the extension extracts the Qt file locations from CMake only (from [CMake Tools extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) setting `cmake.buildDirectory`), so choosing and different Qt version from disk is not supported at the moment (but if you use cmake already, everything is automatically detected :-) ).
+The extension supports Qt file location extractions via
+* CMake
+* `PATH` environment variable
+
+Choosing a different Qt version from disk via this extension is not supported!
 
 ## Features
 
 * [x] Launch Qt Designer
 * [x] Edit `.ui` file in Qt Designer
 * [x] Launch Qt Assistant
-* [x] Launch Qt online documenation
+* [x] Launch Qt online documentation
 * [x] Launch Visual Studio (Windows only)
 * [x] Launch Qt Creator<br>
   `.ui` and `.qrc` files can be opened in Qt Creator. You can also open the whole workspace in Qt Creator too.<br>
   This extension try to detect the Qt Creator installation automatically (on Windows and MacOS). You can set the executable path via `qttools.creator` settings if the extension can't find Qt Creator (for whatever reason)
-* [x] Extract the Qt file locations from the cmake cache (`CMakeCache.txt`). The cmake build directory is extracted from the vscode extension [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) setting `cmake.buildDirectory`. 
-  So you need to configure your project for the first time and afterwards every Qt tool is found automatically (when it is installed on your disk ;-) ).
+* [x] Extract the Qt file locations from the cmake cache
+* [x] Extract the Qt file locations via `PATH` environment variable
 * [x] Debugger extensions (via natvis files)<br>
   The Qt natvis file from this extension will automatically get injected into your existing `launch.json` file (per default). If you don't like that feature you can turn it of via `qttools.injectNatvisFile` setting.<br>
   You can also set your custom created/downloaded qt natvis file instead of the bundled one (which implement a few Qt types) by setting `qttools.visualizerFile` to a filepath or url (f.e. you can set `qttools.visualizerFile` to the natvis file from the offical [Qt Visual Studio Tools](https://code.qt.io/cgit/qt-labs/vstools.git/tree/src/qtvstools/qt5.natvis.xml) `https://code.qt.io/cgit/qt-labs/vstools.git/plain/src/qtvstools/qt5.natvis.xml`). When you set an url, the extension will only download it ones and cache it and will use the cached local version<br>
   NOTE: I cannot bundle the Qt Visual Studio Tools natvis file into the extension itself because of it's license restrictions (MIT vs GPL)!
-* [ ] qml language support (there are already some VSCode extensions)
 * ...
 
 ## Requirements
 
-* You need to have the [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) installed, because this extension extracts some data from it!
+* You need to have the [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) installed if you have activated the `cmake` mode, because this extension extracts some data from it!
 * [C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) is highly recommended
+
+## Qt search mode
+The search mode defines how this extension search the Qt binaries like qmake, Qt designer and so on.
+
+### CMake (default mode)
+`"qttools.searchMode": "cmake"`
+
+Extract the Qt file locations from the cmake cache (`CMakeCache.txt`). The cmake build directory is extracted from the VSCode extension [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) setting `cmake.buildDirectory`.
+You need to configure your project for the first time and afterwards every Qt tool is found automatically (when it is installed on your disk ;-) ) otherwise the launch of commands like `Launch Qt Designer` will fail.
+
+The benefit of this mode is that VSCode see the same Qt version as cmake is using, so it is automatically configured for you.
+
+### PATH
+`"qttools.searchMode": "path"`
+
+Search Qt in the `PATH` environment variable like it is done in the terminal. This mode helpful when you have a system wide Qt installation like on Linux based operating systems.
+
+You don't need to configure anything to be able to use the commands of this extension.
 
 ## Limitations
 
@@ -52,9 +73,9 @@ The Qt online help can be used with this extension. Right now only the latest Qt
 You  have 2 commands:
 
 * Qt: Online help  
-  This will open the Qt documentation. When you are in a `.cpp` or `.h` file and your cursor is inside a text block then the command will search that word as a class in the documenation.
+  This will open the Qt documentation. When you are in a `.cpp` or `.h` file and your cursor is inside a text block then the command will search that word as a class in the documentation.
 * Qt: Search online help  
-  This command will create a textbox inside vscode where you can enter your search term. This search term will be send to the search of the Qt Documenation.
+  This command will create a textbox inside vscode where you can enter your search term. This search term will be send to the search of the Qt Documentation.
 
 By default the qt website will be opened inside VSCode itself.
 
@@ -66,7 +87,7 @@ The integrate webview has some limitations:
   You can click the middle mouse button on that link and it will open in your external browser.
 * No navigation buttons
 
-You can also turn of the embedded webview for the online help and use your external browser by setting the `qttools.useExternalBrowser` to `true`. Be aware that you will get a popup from VSCode which informs you about opening an external website. To avoid getting this popup every time just press on `Configure Trsuted Domains` and choose `trust qt.io and all its subdomains`.
+You can also turn of the embedded webview for the online help and use your external browser by setting the `qttools.useExternalBrowser` to `true`. Be aware that you will get a popup from VSCode which informs you about opening an external website. To avoid getting this popup every time just press on `Configure Trusted Domains` and choose `trust qt.io and all its subdomains`.
 
 ## Troubleshooting
 
