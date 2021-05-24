@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.8.3
+
+- Bump lodash from 4.17.19 to 4.17.21 to fix a security vulnerability
+
 ## 0.8.2
 
 - Bump elliptic from 6.5.3 to 6.5.4 to fix a security vulnerability
