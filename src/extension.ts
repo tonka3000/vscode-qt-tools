@@ -51,6 +51,13 @@ class ExtensionManager implements vscode.Disposable {
 		if (this.help) {
 			this.help.useExternalBrowser = this.getUseExternalBrowserForOnlineHelp();
 		}
+
+		const extraSearchDirs = this.getExtraSearchDirectories();
+		if (this.qtManager) {
+			this.logger.debug(`extra search directories: ${extraSearchDirs}`);
+			this.qtManager.extraSearchDirectories = extraSearchDirs;
+		}
+
 		const qtSearchMode = await this.getQtSearchMode();
 		this.logger.debug(`Qt search mode '${qtSearchMode}'`);
 		if (qtSearchMode == "cmake") {
@@ -59,13 +66,13 @@ class ExtensionManager implements vscode.Disposable {
 				this.cmakeCache.filename = await this.getCmakeCacheFilename();
 				this.logger.debug(`read cmake cache from ${this.cmakeCache.filename}`);
 				await this.cmakeCache.readCache();
-				const Qt5_DIR = this.cmakeCache.getKeyOrDefault("Qt5_DIR", this.cmakeCache.getKeyOrDefault("Qt5Core_DIR", ""));
+				const Qt_DIR = qt.getQtDirFromCMakeCache(this.cmakeCache);
 				let qtRootDir = "";
-				if (Qt5_DIR) {
-					this.logger.debug(`search Qt root directory in Qt5_DIR "${Qt5_DIR}"`);
-					qtRootDir = await qt.findQtRootDirViaCmakeDir(Qt5_DIR);
+				if (Qt_DIR) {
+					this.logger.debug(`search Qt root directory in Qt_DIR "${Qt_DIR}"`);
+					qtRootDir = await qt.findQtRootDirViaCmakeDir(Qt_DIR);
 					if (!qtRootDir) {
-						this.logger.debug(`could not find executables in ${Qt5_DIR}, fallback to PATH search`);
+						this.logger.debug(`could not find executables in ${Qt_DIR}, fallback to PATH search`);
 						// search in PATH
 						qtRootDir = await qt.findQtRootDirViaPathEnv();
 					}
@@ -73,11 +80,6 @@ class ExtensionManager implements vscode.Disposable {
 				}
 				else {
 					this.logger.warning(`Could not find Qt5_DIR or Qt5Core_DIR in ${this.cmakeCache.filename}`);
-				}
-				const extraSearchDirs = this.getExtraSearchDirectories();
-				if (this.qtManager) {
-					this.logger.debug(`extra search directories: ${extraSearchDirs}`);
-					this.qtManager.extraSearchDirectories = extraSearchDirs;
 				}
 				this.setActiveKit(qtRootDir);
 				this.setupCMakeCacheWatcher();
