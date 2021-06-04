@@ -191,7 +191,7 @@ export class Qt {
         if (!await tools.fileExists(creatorFilename)) {
             throw new Error(`qt creator executable does not exist '${creatorFilename}'`);
         }
-        let args: string[] = [];
+        let args: string[] = ["-client"];
         if (filename.length > 0) {
             if (!(await afs.lstat(filename)).isDirectory()) { // directories will be not checked
                 const extension = path.extname(filename);
@@ -199,7 +199,7 @@ export class Qt {
                     throw new Error(`file extension '${extension}' is not support by Qt Creator`);
                 }
             }
-            args = [filename];
+            args.push(filename);
         }
         const assistant = spawn(creatorFilename, args);
         assistant.on('close', (code) => {
