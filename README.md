@@ -14,6 +14,7 @@ Choosing a different Qt version from disk via this extension is not supported!
 
 ## Features
 
+* [x] Support for Qt 5 and Qt 6
 * [x] Launch Qt Designer
 * [x] Edit `.ui` file in Qt Designer
 * [x] Launch Qt Assistant

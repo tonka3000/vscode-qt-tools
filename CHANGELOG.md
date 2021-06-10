@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.9.0
+
+- Add optinoal PATH mode
+- Add support for Qt6<br>
+  Thanks for the help [@Animeshdhakal](https://github.com/Animeshdhakal) and [@macdew](https://github.com/macdew) 🙏
+
 ## 0.8.3
 
 - Bump lodash from 4.17.19 to 4.17.21 to fix a security vulnerability
