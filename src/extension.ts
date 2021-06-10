@@ -51,37 +51,54 @@ class ExtensionManager implements vscode.Disposable {
 		if (this.help) {
 			this.help.useExternalBrowser = this.getUseExternalBrowserForOnlineHelp();
 		}
-		if (this.cmakeCache) {
-			this.logger.debug(`cmake build directory: ${await this.getCMakeBuildDirectory()}`);
-			this.cmakeCache.filename = await this.getCmakeCacheFilename();
-			this.logger.debug(`read cmake cache from ${this.cmakeCache.filename}`);
-			await this.cmakeCache.readCache();
-			const Qt5_DIR = this.cmakeCache.getKeyOrDefault("Qt5_DIR", this.cmakeCache.getKeyOrDefault("Qt5Core_DIR", ""));
-			let qtRootDir = "";
-			if (Qt5_DIR) {
-				this.logger.debug(`search Qt root directory in Qt5_DIR "${Qt5_DIR}"`);
-				qtRootDir = await qt.findQtRootDirViaCmakeDir(Qt5_DIR);
-				if (!qtRootDir) {
-					this.logger.debug(`could not find executables in ${Qt5_DIR}, fallback to PATH search`);
-					// search in PATH
-					qtRootDir = await qt.findQtRootDirViaPathEnv();
+
+		const extraSearchDirs = this.getExtraSearchDirectories();
+		if (this.qtManager) {
+			this.logger.debug(`extra search directories: ${extraSearchDirs}`);
+			this.qtManager.extraSearchDirectories = extraSearchDirs;
+		}
+
+		const qtSearchMode = await this.getQtSearchMode();
+		this.logger.debug(`Qt search mode '${qtSearchMode}'`);
+		if (qtSearchMode == "cmake") {
+			if (this.cmakeCache) {
+				this.logger.debug(`cmake build directory: ${await this.getCMakeBuildDirectory()}`);
+				this.cmakeCache.filename = await this.getCmakeCacheFilename();
+				this.logger.debug(`read cmake cache from ${this.cmakeCache.filename}`);
+				await this.cmakeCache.readCache();
+				const Qt_DIR = qt.getQtDirFromCMakeCache(this.cmakeCache);
+				let qtRootDir = "";
+				if (Qt_DIR) {
+					this.logger.debug(`search Qt root directory in Qt_DIR "${Qt_DIR}"`);
+					qtRootDir = await qt.findQtRootDirViaCmakeDir(Qt_DIR);
+					if (!qtRootDir) {
+						this.logger.debug(`could not find executables in ${Qt_DIR}, fallback to PATH search`);
+						// search in PATH
+						qtRootDir = await qt.findQtRootDirViaPathEnv();
+					}
+					this.logger.debug(`Qt root directory is "${qtRootDir}"`);
 				}
-				this.logger.debug(`Qt root directory is "${qtRootDir}"`);
+				else {
+					this.logger.warning(`Could not find Qt5_DIR or Qt5Core_DIR in ${this.cmakeCache.filename}`);
+				}
+				this.setActiveKit(qtRootDir);
+				this.setupCMakeCacheWatcher();
+				if (qtRootDir) {
+					await this.generateNativsFile();
+					await this.injectNatvisFile();
+				}
 			}
-			else {
-				this.logger.warning(`Could not find Qt5_DIR or Qt5Core_DIR in ${this.cmakeCache.filename}`);
-			}
-			const extraSearchDirs = this.getExtraSearchDirectories();
-			if (this.qtManager) {
-				this.logger.debug(`extra search directories: ${extraSearchDirs}`);
-				this.qtManager.extraSearchDirectories = extraSearchDirs;
-			}
+		} else if (qtSearchMode == "path") {
+			this.logger.debug("search Qt root directory in PATH");
+			const qtRootDir = await qt.findQtRootDirViaPathEnv();
+			this.logger.debug(`Qt root directory from PATH '${qtRootDir}'`);
 			this.setActiveKit(qtRootDir);
-			this.setupCMakeCacheWatcher();
 			if (qtRootDir) {
 				await this.generateNativsFile();
 				await this.injectNatvisFile();
 			}
+		} else {
+			this.logger.error(`unknown Qt find mode '${qtSearchMode}'`);
 		}
 		if (this.qtManager) {
 			this.qtManager.setCreatorFilename(this.getCreatorFilenameSetting());
@@ -307,6 +324,19 @@ class ExtensionManager implements vscode.Disposable {
 		return visualizerFile;
 	}
 
+	public async getQtSearchMode(): Promise<string> {
+		const workbenchConfig = vscode.workspace.getConfiguration();
+		let result = workbenchConfig.get('qttools.searchMode') as string;
+		if (result) {
+			if (result !== "cmake" && result !== "path") {
+				result = "cmake";
+			}
+		} else {
+			result = "cmake";
+		}
+		return result;
+	}
+
 	public async generateNativsFile() {
 		this.logger.debug("generate natvis file");
 		const natvisTempalteFilename = await this.getNatvisTemplateFilepath();
@@ -427,32 +457,34 @@ export async function activate(context: vscode.ExtensionContext) {
 	_EXT_MANAGER = new ExtensionManager(context);
 	const logger = _EXT_MANAGER.logger;
 
-	const cmakeTools = vscode.extensions.getExtension('ms-vscode.cmake-tools');
-	if (cmakeTools) {
-		if (!cmakeTools.isActive) {
-			logger.debug("cmake tools extension is not active, waiting for it");
-			let activeCounter = 0;
-			await new Promise((resolve) => {
-				const isActive = () => {
-					if (cmakeTools && cmakeTools.isActive) {
-						logger.debug("cmake tools is active");
-						return resolve();
-					}
-					activeCounter++;
-					logger.debug(`wait for cmake tools to get active (${activeCounter})`);
-					if (activeCounter > 15) { // ~15 seconds timeout
-						logger.debug("cmake tools is not active, timed out");
-						return resolve(); // waiting for cmake tools timed out
-					}
-					setTimeout(isActive, 1000);
-				};
-				isActive();
-			});
+	if (await _EXT_MANAGER.getQtSearchMode() == "cmake") {
+		const cmakeTools = vscode.extensions.getExtension('ms-vscode.cmake-tools');
+		if (cmakeTools) {
+			if (!cmakeTools.isActive) {
+				logger.debug("cmake tools extension is not active, waiting for it");
+				let activeCounter = 0;
+				await new Promise((resolve) => {
+					const isActive = () => {
+						if (cmakeTools && cmakeTools.isActive) {
+							logger.debug("cmake tools is active");
+							return resolve();
+						}
+						activeCounter++;
+						logger.debug(`wait for cmake tools to get active (${activeCounter})`);
+						if (activeCounter > 15) { // ~15 seconds timeout
+							logger.debug("cmake tools is not active, timed out");
+							return resolve(); // waiting for cmake tools timed out
+						}
+						setTimeout(isActive, 1000);
+					};
+					isActive();
+				});
 
+			}
 		}
-	}
-	else {
-		await vscode.window.showWarningMessage('cmake tools extension is not installed or enabled');
+		else {
+			await vscode.window.showWarningMessage('cmake tools extension is not installed or enabled');
+		}
 	}
 
 	_EXT_MANAGER.updateState();

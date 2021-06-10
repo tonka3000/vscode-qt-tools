@@ -2,7 +2,7 @@
 	"name": "qtvsctools",
 	"displayName": "Qt tools",
 	"description": "Qt tools support for VSCode",
-	"version": "0.8.3",
+	"version": "0.9.0",
 	"publisher": "tonka3000",
 	"preview": true,
 	"license": "MIT",
@@ -173,6 +173,19 @@
 						"type": "string",
 						"default": "",
 						"description": "filepath or url to a natvis.xml file which will be used instead of the bundled one. You can use f.e. `https://code.qt.io/cgit/qt-labs/vstools.git/plain/src/qtvstools/qt5.natvis.xml` when you want to use the file from Qt Visual Studio tools"
+					},
+					"qttools.searchMode": {
+						"type": "string",
+						"default": "cmake",
+						"enum": [
+							"cmake",
+							"path"
+						],
+						"description": "Qt search mode",
+						"enumDescriptions": [
+							"Search Qt based on cmake. The cmake project needs to be configured before Qt can be found",
+							"Search Qt in the PATH variable"
+						]
 					},
 					"qttools.creator": {
 						"type": "string",
