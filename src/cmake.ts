@@ -52,7 +52,7 @@ export class CMakeCache {
                         const varName = groups[1];
                         const varType = groups[2];
                         const varValue = groups[3];
-                        if (varName.startsWith("Qt5") || varName.startsWith("CMAKE_PROJECT_NAME")) {
+                        if (varName.startsWith("Qt5") || varName.startsWith("Qt6") || varName.startsWith("CMAKE_PROJECT_NAME")) {
                             this.values[varName] = varValue;
                         }
                     }
