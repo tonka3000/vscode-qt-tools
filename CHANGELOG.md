@@ -2,7 +2,7 @@
 
 ## 0.9.0
 
-- Add optinoal PATH mode
+- Add optional PATH mode
 - Launching Qt Creator will use the running instance if there is one<br>
   Thanks to [@jannkoeker](https://github.com/jannkoeker) for the contribution
 - Add support for Qt6<br>
