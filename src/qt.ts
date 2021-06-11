@@ -5,6 +5,18 @@ import { platform } from "os";
 import * as vscode from 'vscode';
 import { spawn, execSync } from 'child_process';
 import * as os from "os";
+import * as cmake from './cmake';
+
+export function getQtDirFromCMakeCache(cache: cmake.CMakeCache) {
+    let result = "";
+    for (const qtKey of ["Qt5_DIR", "Qt5Core_DIR", "Qt6_DIR", "Qt6Core_DIR"]) {
+        result = cache.getKeyOrDefault(qtKey, "");
+        if (!!result) {
+            break;
+        }
+    }
+    return result;
+}
 
 async function searchFileInDirectories(directories: Array<string>, filenames: Array<string>): Promise<string> {
     for (let i = 0; i < directories.length; i++) {
@@ -191,7 +203,7 @@ export class Qt {
         if (!await tools.fileExists(creatorFilename)) {
             throw new Error(`qt creator executable does not exist '${creatorFilename}'`);
         }
-        let args: string[] = [];
+        let args: string[] = ["-client"];
         if (filename.length > 0) {
             if (!(await afs.lstat(filename)).isDirectory()) { // directories will be not checked
                 const extension = path.extname(filename);
@@ -199,7 +211,7 @@ export class Qt {
                     throw new Error(`file extension '${extension}' is not support by Qt Creator`);
                 }
             }
-            args = [filename];
+            args.push(filename);
         }
         const assistant = spawn(creatorFilename, args);
         assistant.on('close', (code) => {

@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.9.0
+
+- Add optional PATH mode
+- Launching Qt Creator will use the running instance if there is one<br>
+  Thanks to [@jannkoeker](https://github.com/jannkoeker) for the contribution
+- Add support for Qt6<br>
+  Thanks for the help [@Animeshdhakal](https://github.com/Animeshdhakal) and [@macdew](https://github.com/macdew) 🙏
+
 ## 0.8.3
 
 - Bump lodash from 4.17.19 to 4.17.21 to fix a security vulnerability
