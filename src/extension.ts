@@ -463,7 +463,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			if (!cmakeTools.isActive) {
 				logger.debug("cmake tools extension is not active, waiting for it");
 				let activeCounter = 0;
-				await new Promise((resolve) => {
+				await new Promise<void>((resolve) => {
 					const isActive = () => {
 						if (cmakeTools && cmakeTools.isActive) {
 							logger.debug("cmake tools is active");
