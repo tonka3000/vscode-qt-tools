@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.10.0
+
+- Add multi-file support for Qt Creator
+- Upgrade typescript and webpack
+
 ## 0.9.0
 
 - Add optional PATH mode
