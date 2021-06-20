@@ -27,7 +27,7 @@ class ExtensionManager implements vscode.Disposable {
 		this.help = new QtHelp(extensionContext);
 		this._channel = vscode.window.createOutputChannel("Qt");
 		this.logger.outputchannel = this._channel;
-		this.qtManager = new qt.Qt(this._channel, this._context.extensionPath);
+		this.qtManager = new qt.Qt(this._channel, this._context.extensionPath, this.logger);
 		this.cmakeCache = new cmake.CMakeCache();
 		this.natvisDownloader = new NatvisDownloader(this._context);
 		this.logger.level = this.getLogLevel();
@@ -463,7 +463,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			if (!cmakeTools.isActive) {
 				logger.debug("cmake tools extension is not active, waiting for it");
 				let activeCounter = 0;
-				await new Promise((resolve) => {
+				await new Promise<void>((resolve) => {
 					const isActive = () => {
 						if (cmakeTools && cmakeTools.isActive) {
 							logger.debug("cmake tools is active");
@@ -502,15 +502,20 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.currentfileindesigner', async (_: vscode.Uri, selectedFiles: vscode.Uri[]) => {
+	_EXT_MANAGER.registerCommand('qttools.currentfileindesigner', async (uri: vscode.Uri, selectedFiles: any) => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
 			await _EXT_MANAGER.updateState();
 			let files: string[] = [];
-			for (var selectedFile of selectedFiles) {
-				const path = selectedFile.fsPath;
-				if (path) {
-					files.push(path);
+			if (selectedFiles && Array.isArray(selectedFiles)) {
+				for (var selectedFile of selectedFiles) {
+					const path = selectedFile.fsPath;
+					if (path) {
+						files.push(path);
+					}
 				}
+			}
+			else {
+				files.push(uri.fsPath);
 			}
 			if (files.length > 0) {
 				try {
@@ -611,8 +616,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
 			await _EXT_MANAGER.updateState();
 			try {
-				const workspaceFolder = vscode.workspace.rootPath;
-				_EXT_MANAGER.qtManager.launchCreator(workspaceFolder);
+				const workspaceFolder = vscode.workspace.rootPath || "";
+				_EXT_MANAGER.qtManager.launchCreator([workspaceFolder]);
 			} catch (error) {
 				const ex: Error = error;
 				_EXT_MANAGER.outputchannel.appendLine(`error during launching Qt Creator: ${ex.message}`);
@@ -621,13 +626,24 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	_EXT_MANAGER.registerCommand('qttools.currentfileincreator', async (uri: vscode.Uri) => {
+	_EXT_MANAGER.registerCommand('qttools.currentfileincreator', async (uri: vscode.Uri, selectedFiles: any) => {
 		if (_EXT_MANAGER && _EXT_MANAGER.qtManager) {
-			await _EXT_MANAGER.updateState();
-			const current_file = uri.fsPath;
-			if (current_file) {
+			await _EXT_MANAGER.updateState()
+			let files: string[] = [];
+			if (selectedFiles && Array.isArray(selectedFiles)) {
+				for (var selectedFile of selectedFiles) {
+					const path = selectedFile.fsPath;
+					if (path) {
+						files.push(path);
+					}
+				}
+			}
+			else {
+				files.push(uri.fsPath);
+			}
+			if (files.length > 0) {
 				try {
-					_EXT_MANAGER.qtManager.launchCreator(current_file);
+					_EXT_MANAGER.qtManager.launchCreator(files);
 				} catch (error) {
 					const ex: Error = error;
 					_EXT_MANAGER.outputchannel.appendLine(`error during launching Qt Creator: ${ex.message}`);

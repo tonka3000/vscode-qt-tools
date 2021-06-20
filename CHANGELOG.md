@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.10.0
+
+- Add multi-file support for Qt Creator
+- Upgrade typescript and webpack
+- Disable virtual workspaces support according to https://github.com/microsoft/vscode/wiki/Virtual-Workspaces
+
 ## 0.9.0
 
 - Add optional PATH mode

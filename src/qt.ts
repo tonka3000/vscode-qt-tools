@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import { spawn, execSync } from 'child_process';
 import * as os from "os";
 import * as cmake from './cmake';
+import { Logger } from './logging';
 
 export function getQtDirFromCMakeCache(cache: cmake.CMakeCache) {
     let result = "";
@@ -82,11 +83,13 @@ export class Qt {
     public _extraSearchDirectories: Array<string> = [];
     public outputchannel: vscode.OutputChannel;
     private _extensionRootFolder = "";
+    private logger: Logger;
 
-    constructor(outputchannel: vscode.OutputChannel, extensionRootFolder: string, qtbaseDir: string = "") {
+    constructor(outputchannel: vscode.OutputChannel, extensionRootFolder: string, logger: Logger, qtbaseDir: string = "") {
         this._qtbaseDir = qtbaseDir;
         this.outputchannel = outputchannel;
         this._extensionRootFolder = extensionRootFolder;
+        this.logger = logger;
     }
 
     public get extraSearchDirectories(): Array<string> {
@@ -122,6 +125,7 @@ export class Qt {
                 throw new Error(`file extension '${extension}' is not support by Qt Designer`);
             }
         }
+        this.logger.debug(`call "${designerFilename} ${filenames.join(" ")}"`);
         const designer = spawn(designerFilename, filenames);
         designer.on('close', (code) => {
             this.outputchannel.appendLine(`qt designer child process exited with code ${code}`);
@@ -191,32 +195,37 @@ export class Qt {
         if (!await tools.fileExists(assistantFilename)) {
             throw new Error(`qt assistant executable does not exist '${assistantFilename}'`);
         }
+        this.logger.debug(`call "${assistantFilename} ${args.join(" ")}"`);
         const assistant = spawn(assistantFilename, args);
         assistant.on('close', (code) => {
             this.outputchannel.appendLine(`qt assistant child process exited with code ${code}`);
         });
     }
 
-    public async launchCreator(filename: string = "") {
+    public async launchCreator(filenames: string[] = []) {
         this.outputchannel.appendLine(`launch creator process`);
         const creatorFilename = await this.creatorFilename();
         if (!await tools.fileExists(creatorFilename)) {
             throw new Error(`qt creator executable does not exist '${creatorFilename}'`);
         }
-        let args: string[] = ["-client"];
-        if (filename.length > 0) {
-            if (!(await afs.lstat(filename)).isDirectory()) { // directories will be not checked
-                const extension = path.extname(filename);
-                if (extension !== ".qrc" && extension !== ".ui") {
-                    throw new Error(`file extension '${extension}' is not support by Qt Creator`);
+
+        for (var filename of filenames) {
+            let args: string[] = ["-client"];
+            if (filename.length > 0) {
+                if (!(await afs.lstat(filename)).isDirectory()) { // directories will be not checked
+                    const extension = path.extname(filename);
+                    if (extension !== ".qrc" && extension !== ".ui") {
+                        throw new Error(`file extension '${extension}' is not support by Qt Creator`);
+                    }
                 }
+                args.push(filename);
             }
-            args.push(filename);
+            this.logger.debug(`call "${creatorFilename} ${args.join(" ")}"`);
+            const assistant = spawn(creatorFilename, args);
+            assistant.on('close', (code) => {
+                this.outputchannel.appendLine(`qt creator child process exited with code ${code}`);
+            });
         }
-        const assistant = spawn(creatorFilename, args);
-        assistant.on('close', (code) => {
-            this.outputchannel.appendLine(`qt creator child process exited with code ${code}`);
-        });
     }
 
     /**
