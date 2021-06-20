@@ -12,6 +12,12 @@
 		"c++",
 		"native"
 	],
+	"capabilities": {
+		"virtualWorkspaces": {
+			"supported": false,
+			"description": "Qt tools doesn't support remote repositories."
+		}
+	},
 	"author": {
 		"name": "tonka3100"
 	},
