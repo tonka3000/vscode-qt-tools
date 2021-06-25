@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.10.1
+
+- Fix broken launch of Designer/Creator when command is trigger from the command palette<br>
+  Thanks [@hierfer](https://github.com/hierfer) for the report
+
 ## 0.10.0
 
 - Add multi-file support for Qt Creator
