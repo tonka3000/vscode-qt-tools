@@ -515,7 +515,15 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 			}
 			else {
-				files.push(uri.fsPath);
+				if (uri) {
+					files.push(uri.fsPath);
+				}
+				else {
+					const activeFilename = _EXT_MANAGER.getActiveDocumentFilename();
+					if (activeFilename) {
+						files.push(activeFilename);
+					}
+				}
 			}
 			if (files.length > 0) {
 				try {
@@ -639,7 +647,15 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 			}
 			else {
-				files.push(uri.fsPath);
+				if (uri) {
+					files.push(uri.fsPath);
+				}
+				else {
+					const activeFilename = _EXT_MANAGER.getActiveDocumentFilename();
+					if (activeFilename) {
+						files.push(activeFilename);
+					}
+				}
 			}
 			if (files.length > 0) {
 				try {
