@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.11.0
+
+- Marked word (via selection or vua cursor position) will be used with Qt online help
+
 ## 0.10.1
 
 - Fix broken launch of Designer/Creator when command is trigger from the command palette<br>
