@@ -550,6 +550,16 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (editor) {
 					if (editor.document.fileName.endsWith(".cpp") || editor.document.fileName.endsWith(".h")) {
 						if (editor.selection.isEmpty) {
+							const range = editor.document.getWordRangeAtPosition(editor.selection.active, /\S+/);
+							if (range) {
+								word = editor.document.getText(range);
+								_EXT_MANAGER.logger.debug(`word under cursor: ${word}`);
+							}
+							else {
+								_EXT_MANAGER.logger.debug("no word under cursor");
+							}
+						}
+						else {
 							const wordrange = editor.document.getWordRangeAtPosition(editor.selection.active);
 							if (wordrange) {
 								word = editor.document.getText(wordrange);
