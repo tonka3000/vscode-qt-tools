@@ -46,7 +46,11 @@ export async function findQtRootDirViaPathEnv(): Promise<string> {
         const paths = PATH.split(splitter);
         const exeExtension = tools.exeExtension();
         const mocFilenameOnly = `qmake${exeExtension}`;
-        const mocPath = await searchFileInDirectories(paths, [mocFilenameOnly]);
+        let filesnames = [mocFilenameOnly];
+        if(process.platform == "linux" && !await tools.fileExists("/etc/apt")) {
+            filesnames = ["qmake-qt5", "qmake-qt6"];
+        }
+        const mocPath = await searchFileInDirectories(paths, filesnames);
         if (mocPath) {
             result = path.dirname(mocPath);
         }
@@ -103,6 +107,9 @@ export class Qt {
     public async designerFilename(): Promise<string> {
         let searchdirs = [];
         let filesnames = ["designer" + tools.exeExtension(), "Designer" + tools.exeExtension()];
+        if(process.platform == "linux" && !await tools.fileExists("/etc/apt")) {
+            filesnames = ["designer-qt5" + tools.exeExtension(), "designer-qt6" + tools.exeExtension()];
+        }
         if (this.basedir) {
             searchdirs.push(this.basedir);
             if (process.platform === "darwin") {
@@ -135,6 +142,9 @@ export class Qt {
     public async assistantFilename(): Promise<string> {
         let searchdirs = [];
         let filesnames = ["assistant" + tools.exeExtension(), "Assistant" + tools.exeExtension()];
+        if(process.platform == "linux" && !await tools.fileExists("/etc/apt")) {
+            filesnames = ["assistant-qt5" + tools.exeExtension(), "assistant-qt6" + tools.exeExtension()];
+        }
         if (this.basedir) {
             searchdirs.push(this.basedir);
             if (process.platform === "darwin") {
