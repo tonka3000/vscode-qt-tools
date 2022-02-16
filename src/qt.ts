@@ -46,7 +46,11 @@ export async function findQtRootDirViaPathEnv(): Promise<string> {
         const paths = PATH.split(splitter);
         const exeExtension = tools.exeExtension();
         const mocFilenameOnly = `qmake${exeExtension}`;
-        const mocPath = await searchFileInDirectories(paths, [mocFilenameOnly]);
+        let filesnames = [mocFilenameOnly];
+        if(process.platform == "linux" && !await tools.fileExists("/etc/apt")) {
+            filesnames = ["qmake-qt5", "qmake-qt6"];
+        }
+        const mocPath = await searchFileInDirectories(paths, filesnames);
         if (mocPath) {
             result = path.dirname(mocPath);
         }
@@ -102,7 +106,7 @@ export class Qt {
 
     public async designerFilename(): Promise<string> {
         let searchdirs = [];
-        let filesnames = ["designer" + tools.exeExtension(), "Designer" + tools.exeExtension()];
+        let filesnames = ["designer" + tools.exeExtension(), "Designer" + tools.exeExtension(), "designer-qt5" + tools.exeExtension()];
         if (this.basedir) {
             searchdirs.push(this.basedir);
             if (process.platform === "darwin") {
@@ -110,6 +114,7 @@ export class Qt {
             }
         }
         searchdirs = searchdirs.concat(this.extraSearchDirectories);
+        console.log("searchdirs = " + searchdirs);
         return searchFileInDirectories(searchdirs, filesnames);
     }
 
