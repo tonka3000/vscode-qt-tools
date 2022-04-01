@@ -229,6 +229,7 @@ class ExtensionManager implements vscode.Disposable {
 		let cmakeBuildDir = await this.getActiveCMakeBuildDirectory();
 		if (!cmakeBuildDir) {
 			// fallback to config file when we can not get the info from cmake tools extension directly
+			this.logger.debug("could not get cmake.buildDirectory from cmake extension, fallback to reading it from the settings.json");
 			const workbenchConfig = vscode.workspace.getConfiguration();
 			cmakeBuildDir = String(workbenchConfig.get('cmake.buildDirectory'));
 			cmakeBuildDir = await this.resolveSubstitutionVariables(cmakeBuildDir);
@@ -275,7 +276,7 @@ class ExtensionManager implements vscode.Disposable {
 				result = await vscode.commands.executeCommand(command) || "";
 			}
 			catch (error) {
-
+				console.log(error);
 			}
 		}
 		return result;
