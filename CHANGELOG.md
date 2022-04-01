@@ -2,7 +2,11 @@
 
 ## 0.11.0
 
-- Marked word (via selection or vua cursor position) will be used with Qt online help
+- Add support for REHL/Fedora/CentOS
+
+  Thanks for the contribution [@New-World-2019](https://github.com/New-World-2019)
+
+- Marked word (via selection or via cursor position) will be used with Qt online help
 
 ## 0.10.1
 
