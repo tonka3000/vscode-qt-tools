@@ -229,6 +229,7 @@ class ExtensionManager implements vscode.Disposable {
 		let cmakeBuildDir = await this.getActiveCMakeBuildDirectory();
 		if (!cmakeBuildDir) {
 			// fallback to config file when we can not get the info from cmake tools extension directly
+			this.logger.debug("could not get cmake.buildDirectory from cmake extension, fallback to reading it from the settings.json");
 			const workbenchConfig = vscode.workspace.getConfiguration();
 			cmakeBuildDir = String(workbenchConfig.get('cmake.buildDirectory'));
 			cmakeBuildDir = await this.resolveSubstitutionVariables(cmakeBuildDir);
@@ -275,7 +276,7 @@ class ExtensionManager implements vscode.Disposable {
 				result = await vscode.commands.executeCommand(command) || "";
 			}
 			catch (error) {
-
+				console.log(error);
 			}
 		}
 		return result;
@@ -550,6 +551,16 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (editor) {
 					if (editor.document.fileName.endsWith(".cpp") || editor.document.fileName.endsWith(".h")) {
 						if (editor.selection.isEmpty) {
+							const range = editor.document.getWordRangeAtPosition(editor.selection.active, /\S+/);
+							if (range) {
+								word = editor.document.getText(range);
+								_EXT_MANAGER.logger.debug(`word under cursor: ${word}`);
+							}
+							else {
+								_EXT_MANAGER.logger.debug("no word under cursor");
+							}
+						}
+						else {
 							const wordrange = editor.document.getWordRangeAtPosition(editor.selection.active);
 							if (wordrange) {
 								word = editor.document.getText(wordrange);
