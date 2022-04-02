@@ -209,8 +209,8 @@ export class Qt {
             throw new Error(`qt creator executable does not exist '${creatorFilename}'`);
         }
 
+        let args: string[] = ["-client"];
         for (var filename of filenames) {
-            let args: string[] = ["-client"];
             if (filename.length > 0) {
                 if (!(await afs.lstat(filename)).isDirectory()) { // directories will be not checked
                     const extension = path.extname(filename);
@@ -220,12 +220,12 @@ export class Qt {
                 }
                 args.push(filename);
             }
-            this.logger.debug(`call "${creatorFilename} ${args.join(" ")}"`);
-            const assistant = spawn(creatorFilename, args);
-            assistant.on('close', (code) => {
-                this.outputchannel.appendLine(`qt creator child process exited with code ${code}`);
-            });
         }
+        this.logger.debug(`call "${creatorFilename} ${args.join(" ")}"`);
+        const creator = spawn(creatorFilename, args);
+        creator.on('close', (code) => {
+            this.outputchannel.appendLine(`qt creator child process exited with code ${code}`);
+        });
     }
 
     /**
