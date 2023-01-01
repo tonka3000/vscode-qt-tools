@@ -259,8 +259,8 @@
 		"typescript": "^4.3.2",
 		"vscode-cpptools": "^3.1.0",
 		"vscode-test": "^1.5.2",
-		"webpack": "^4.46.0",
-		"webpack-cli": "^3.3.12"
+		"webpack": "^5.75.0",
+		"webpack-cli": "^5.0.1"
 	},
 	"dependencies": {
 		"download": "^7.1.0",
