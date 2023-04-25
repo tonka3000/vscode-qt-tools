@@ -27,7 +27,7 @@ Choosing a different Qt version from disk via this extension is not supported!
 * [x] Extract the Qt file locations via `PATH` environment variable
 * [x] Debugger extensions (via natvis files)<br>
   The Qt natvis file from this extension will automatically get injected into your existing `launch.json` file (per default). If you don't like that feature you can turn it of via `qttools.injectNatvisFile` setting.<br>
-  You can also set your custom created/downloaded qt natvis file instead of the bundled one (which implement a few Qt types) by setting `qttools.visualizerFile` to a filepath or url (f.e. you can set `qttools.visualizerFile` to the natvis file from the offical [Qt Visual Studio Tools](https://code.qt.io/cgit/qt-labs/vstools.git/tree/src/qtvstools/qt5.natvis.xml) `https://code.qt.io/cgit/qt-labs/vstools.git/plain/src/qtvstools/qt5.natvis.xml`). When you set an url, the extension will only download it ones and cache it and will use the cached local version<br>
+  You can also set your custom created/downloaded qt natvis file instead of the bundled one (which implement a few Qt types) by setting `qttools.visualizerFile` to a filepath or url (f.e. you can set `qttools.visualizerFile` to the natvis file from the offical [Qt Visual Studio Tools](https://code.qt.io/cgit/qt-labs/vstools.git/tree/src/qtvstools/qt5.natvis.xml) `https://github.com/qt-labs/vstools/blob/dev/QtVsTools.Package/qt5.natvis.xml`). When you set an url, the extension will only download it ones and cache it and will use the cached local version<br>
   NOTE: I cannot bundle the Qt Visual Studio Tools natvis file into the extension itself because of it's license restrictions (MIT vs GPL)!
 * ...
 
