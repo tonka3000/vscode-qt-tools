@@ -26,9 +26,10 @@ Choosing a different Qt version from disk via this extension is not supported!
 * [x] Extract the Qt file locations from the cmake cache
 * [x] Extract the Qt file locations via `PATH` environment variable
 * [x] Debugger extensions (via natvis files)<br>
-  The Qt natvis file from this extension will automatically get injected into your existing `launch.json` file (per default). If you don't like that feature you can turn it of via `qttools.injectNatvisFile` setting.<br>
-  You can also set your custom created/downloaded qt natvis file instead of the bundled one (which implement a few Qt types) by setting `qttools.visualizerFile` to a filepath or url (f.e. you can set `qttools.visualizerFile` to the natvis file from the offical [Qt Visual Studio Tools](https://github.com/qt-labs/vstools/blob/dev/QtVsTools.Package/qt5.natvis.xml) `https://github.com/qt-labs/vstools/blob/dev/QtVsTools.Package/qt5.natvis.xml`). When you set an url, the extension will only download it ones and cache it and will use the cached local version<br>
-  NOTE: I cannot bundle the Qt Visual Studio Tools natvis file into the extension itself because of it's license restrictions (MIT vs GPL)!
+  The Qt natvis file from this extension will automatically get injected into your existing `launch.json` file (per default). If you don't like that feature you can turn it off via `qttools.injectNatvisFile` setting.<br>
+  You can also set your custom created/downloaded qt natvis file instead of the bundled one (which implement a few Qt types) by setting `qttools.visualizerFile` to a filepath or url. F.e. you can set `qttools.visualizerFile` to the https://code.qt.io/cgit/qt-labs/vstools.git/tree/QtMSBuild/QtMsBuild/qt6.natvis.xml natvis file from the official Qt Visual Studio Tools. When you set an url, the extension will only download it ones and cache it and will use the cached local version<br>
+  You will need to remove '##NAMESPACE##::' occurrences from this file, see https://wiki.qt.io/IDE_Debug_Helpers#MS_Visual_Studio_2012_and_up<br>
+  NOTE: I cannot bundle the Qt Visual Studio Tools natvis file into the extension itself because of its license restrictions (MIT vs GPL)!
 * ...
 
 ## Requirements
@@ -57,7 +58,13 @@ You don't need to configure anything to be able to use the commands of this exte
 ## Limitations
 
 * There are some situation where the automatic detection mechanism of Qt is not working. If that is the case you can always trigger the `Scan for Qt kits` command in the command palette.
-* The debugger extension use normal natvis xml files (used via the `launch.json` setting `visualizerFile` from the [C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) ). They work really well on windows, but on mac and linux there are some problems, because it is not based on the same implementation. If you have any problems with them create an issue on their issue tracker.
+* The debugger extension use normal natvis xml files (used via the `launch.json` setting `visualizerFile` from the [C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) ).
+vscode-qt-tools extension just injects the natvis files to launch.json file (replacing the namespace macro correctly), and does not do any special handling of them inside it.
+The handling of natvis files is made by the ms-vscode.cpptools extension itself. 
+From the [documentation page](https://code.visualstudio.com/docs/cpp/natvis):
+> For Microsoft C++ debugging ("type": "cppvsdbg"), the debugger contains the full implementation of the Natvis framework in Visual Studio.
+> For gdb/lldb debugging ("type": "cppdbg"), a subset of the Natvis framework has been ported to the Visual Studio Code C/C++ extension.
+> If additional features that are not implemented are requested, please file an issue on the MIEngine GitHub page with details of what is missing.
 
 ## Variable substitution
 
